@@ -42,6 +42,28 @@ export default function BuilderForm({
     fr.readAsDataURL(file);
   }
 
+  function handleLogo(file: File | undefined) {
+    if (!file) return;
+    const fr = new FileReader();
+    fr.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 160;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const cv = document.createElement("canvas");
+        cv.width = w;
+        cv.height = h;
+        cv.getContext("2d")?.drawImage(img, 0, 0, w, h);
+        // PNG, not JPEG: preserves transparency so the badge blends into the card corner.
+        patch({ logo: cv.toDataURL("image/png") });
+      };
+      img.src = ev.target?.result as string;
+    };
+    fr.readAsDataURL(file);
+  }
+
   // ---- dynamic list helpers ----
   const setPhone = (i: number, p: Partial<Phone>) => {
     const phones = data.phones.map((ph, idx) => (idx === i ? { ...ph, ...p } : ph));
@@ -137,6 +159,48 @@ export default function BuilderForm({
           </div>
         </div>
 
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-lg grid place-items-center overflow-hidden flex-none border"
+            style={{ background: "#fff", borderColor: "var(--line-strong)" }}
+          >
+            {data.logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={data.logo} alt="" className="max-w-full max-h-full object-contain" />
+            ) : (
+              <span className="text-[8px] text-center leading-tight" style={{ color: "var(--faint)" }}>Logo</span>
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <label
+              className="inline-flex items-center gap-2 cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold w-max border"
+              style={{ borderColor: "var(--field-line)", color: "var(--ink)" }}
+            >
+              {data.logo ? "Replace logo" : "Upload logo"}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => handleLogo(e.target.files?.[0])}
+              />
+            </label>
+            {data.logo ? (
+              <button
+                type="button"
+                onClick={() => patch({ logo: "" })}
+                className="text-xs text-left w-max cursor-pointer"
+                style={{ color: "var(--muted)" }}
+              >
+                Remove logo
+              </button>
+            ) : null}
+          </div>
+          <span className="text-[11.5px] flex-1" style={{ color: "var(--faint)" }}>
+            Optional — replaces the brand badge in the card&apos;s corner. Kept small, so it never
+            affects the QR code&apos;s size.
+          </span>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={LABEL} style={labelStyle}>First name</label>
@@ -212,9 +276,9 @@ export default function BuilderForm({
           {SOCIALS.map((s) => (
             <div key={s.key} className="flex items-center gap-2.5 rounded-lg border px-2.5 py-1.5"
               style={{ background: "var(--field)", borderColor: "var(--field-line)" }}>
-              <span className="w-6.5 h-6.5 rounded-md grid place-items-center text-white font-display font-bold text-[11px]"
+              <span className="w-6.5 h-6.5 rounded-md grid place-items-center text-white flex-none"
                 style={{ background: s.color, width: 26, height: 26 }} title={s.name}>
-                {s.mono}
+                <s.icon width={14} height={14} />
               </span>
               <input className="flex-1 min-w-0 bg-transparent border-0 outline-none py-1.5 text-sm"
                 style={{ color: "var(--ink)" }} type="url" value={data.socials[s.key] || ""}

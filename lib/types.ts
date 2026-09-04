@@ -27,6 +27,8 @@ export interface CardData {
   accent: AccentKey;
   /** data URL (MVP) or Supabase Storage URL (later). May be empty. */
   photo: string;
+  /** Optional per-card logo, data URL. Replaces the brand badge in the card's corner when set. */
+  logo: string;
 }
 
 /** A row from the `cards` table. */
@@ -52,6 +54,7 @@ export const emptyCard = (): CardData => ({
   role: "",
   accent: "secondary",
   photo: "",
+  logo: "",
 });
 
 /** One person inside a bulk-uploaded group, parsed from a CSV row. */

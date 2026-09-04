@@ -33,6 +33,7 @@ const SAMPLE: CardData = {
   role: "",
   accent: "secondary",
   photo: "",
+  logo: "",
 };
 
 type Mode = "single" | "group";

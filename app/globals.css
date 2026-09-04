@@ -58,7 +58,11 @@ h1, h2, h3 {
 .cs-card {
   width: 100%;
   max-width: 470px;
-  aspect-ratio: 1.62 / 1;
+  /* A fixed aspect-ratio used to clip content (icons hidden in the exported
+     PNG) once the left column had enough lines to exceed it. min-height keeps
+     the short-card look by default; the card grows for longer content
+     instead of clipping it. 290px matches the old 470/1.62 default height. */
+  min-height: 290px;
   background: var(--surface);
   border-radius: 18px;
   overflow: hidden;
@@ -78,11 +82,11 @@ h1, h2, h3 {
   background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary) 55%, var(--brand-accent));
 }
 @media (max-width: 400px) {
-  .cs-card { aspect-ratio: auto; grid-template-columns: 1fr; }
+  .cs-card { grid-template-columns: 1fr; }
 }
 
-.cs-main { padding: 22px 18px 16px; display: flex; flex-direction: column; min-width: 0; background: var(--surface); }
-.cs-top { display: flex; gap: 13px; align-items: center; min-width: 0; }
+.cs-main { padding: 18px 16px 14px; display: flex; flex-direction: column; min-width: 0; background: var(--surface); }
+.cs-top { display: flex; gap: 12px; align-items: center; min-width: 0; }
 .cs-photo {
   width: 58px; height: 58px; border-radius: 50%; flex: none; overflow: hidden;
   background: color-mix(in srgb, var(--brand-secondary) 12%, transparent);
@@ -95,7 +99,7 @@ h1, h2, h3 {
 .cs-title { font-size: 12px; font-weight: 600; color: var(--brand-primary-deep); margin-top: 3px; line-height: 1.25; }
 .cs-org { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
 
-.cs-contact { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; }
+.cs-contact { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
 .cs-line { display: flex; align-items: center; gap: 9px; font-size: 11.5px; color: var(--ink); min-width: 0; }
 .cs-ic {
   width: 20px; height: 20px; border-radius: 6px; flex: none; display: grid; place-items: center;
@@ -104,7 +108,10 @@ h1, h2, h3 {
 .cs-ic svg { width: 12px; height: 12px; }
 .cs-line span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.cs-socials { margin-top: auto; padding-top: 14px; display: flex; flex-wrap: wrap; gap: 7px; }
+/* Flows right after the contact block instead of margin-top:auto, which used
+   to stretch to fill the fixed-height card — a big gap when content was
+   short, and the reason the icons got squeezed out when content was long. */
+.cs-socials { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
 .cs-badge { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: #fff; font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 10.5px; text-decoration: none; }
 
 .cs-group-list { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; overflow: hidden; }
@@ -117,7 +124,7 @@ h1, h2, h3 {
 .cs-group-empty { font-size: 11.5px; color: var(--faint); font-style: italic; }
 
 .cs-aside {
-  color: #fff; padding: 18px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;
+  color: #fff; padding: 16px 14px; display: flex; flex-direction: column; align-items: center; gap: 9px; position: relative;
   background:
     radial-gradient(130% 120% at 120% -20%, color-mix(in srgb, var(--brand-primary) 42%, var(--brand-secondary-deep)), transparent 55%),
     linear-gradient(160deg, var(--brand-secondary), var(--brand-secondary-deep));
@@ -131,8 +138,8 @@ h1, h2, h3 {
 .cs-qr-chip img { width: 128px; height: 128px; display: block; border-radius: 2px; }
 .cs-qr-cta { font-size: 9px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; text-align: center; display: flex; align-items: center; gap: 5px; }
 .cs-qr-cta svg { width: 11px; height: 11px; }
-.cs-logo { position: absolute; top: 12px; right: 12px; background: #fff; border-radius: 6px; padding: 3px 5px; display: flex; }
-.cs-logo img { height: 16px; width: auto; display: block; }
+.cs-logo { position: absolute; top: 12px; right: 12px; max-width: 72px; background: #fff; border-radius: 6px; padding: 3px 5px; display: flex; }
+.cs-logo img { height: 16px; width: auto; max-width: 64px; object-fit: contain; display: block; }
 .cs-logo-text { position: absolute; top: 12px; right: 12px; font-family: var(--font-display), sans-serif; font-weight: 800; font-size: 10px; color: rgba(255,255,255,.9); letter-spacing: -0.01em; max-width: 45%; text-align: right; }
 
 @media print {

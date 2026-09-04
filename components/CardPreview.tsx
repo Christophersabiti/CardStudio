@@ -84,7 +84,7 @@ export default function CardPreview({
               title={s.name}
               style={{ background: s.color }}
             >
-              {s.mono}
+              <s.icon width={14} height={14} />
             </a>
           ))}
         </div>
@@ -117,10 +117,10 @@ export default function CardPreview({
           <ScanIcon /> Scan to save my contact
         </div>
 
-        {brand.logo ? (
+        {data.logo || brand.logo ? (
           <div className="cs-logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={brand.logo} alt={brand.name} />
+            <img src={data.logo || brand.logo} alt={data.logo ? "Logo" : brand.name} />
           </div>
         ) : (
           <div className="cs-logo-text">{brand.name}</div>
