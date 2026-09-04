@@ -47,7 +47,7 @@ export function buildVcard(data: CardData): string {
   return lines.join("\r\n");
 }
 
-/** Suggested filename base, e.g. "Christopher_Sabiti". */
+/** Suggested filename base, e.g. "Jane_Doe". */
 export function contactFileBase(data: CardData): string {
   const base = `${data.firstName}_${data.lastName}`.trim().replace(/\s+/g, "_");
   return base || "contact";
@@ -79,7 +79,7 @@ export function buildGroupVcard(data: GroupData): string {
   return data.members.map((m) => buildMemberVcard(m, data.organization)).join("\r\n");
 }
 
-/** Suggested filename base for a group's combined .vcf / image, e.g. "Sabtech_Online_Team". */
+/** Suggested filename base for a group's combined .vcf / image, e.g. "Acme_Inc_Team". */
 export function groupFileBase(data: GroupData): string {
   const base = data.name.trim().replace(/\s+/g, "_");
   return base || "group";

@@ -141,23 +141,23 @@ export default function BuilderForm({
           <div>
             <label className={LABEL} style={labelStyle}>First name</label>
             <input className={INPUT} style={inputStyle} value={data.firstName}
-              onChange={(e) => patch({ firstName: e.target.value })} placeholder="Christopher" />
+              onChange={(e) => patch({ firstName: e.target.value })} placeholder="Jane" />
           </div>
           <div>
             <label className={LABEL} style={labelStyle}>Last name</label>
             <input className={INPUT} style={inputStyle} value={data.lastName}
-              onChange={(e) => patch({ lastName: e.target.value })} placeholder="Sabiti" />
+              onChange={(e) => patch({ lastName: e.target.value })} placeholder="Doe" />
           </div>
         </div>
         <div>
           <label className={LABEL} style={labelStyle}>Designation / Job title</label>
           <input className={INPUT} style={inputStyle} value={data.title}
-            onChange={(e) => patch({ title: e.target.value })} placeholder="Founder & Chief Trainer" />
+            onChange={(e) => patch({ title: e.target.value })} placeholder="Product Manager" />
         </div>
         <div>
           <label className={LABEL} style={labelStyle}>Company / Organization</label>
           <input className={INPUT} style={inputStyle} value={data.organization}
-            onChange={(e) => patch({ organization: e.target.value })} placeholder="Sabtech Online" />
+            onChange={(e) => patch({ organization: e.target.value })} placeholder="Acme Inc." />
         </div>
       </Section>
 
@@ -172,7 +172,7 @@ export default function BuilderForm({
                 ))}
               </select>
               <input className={INPUT} style={inputStyle} type="tel" value={p.value}
-                onChange={(e) => setPhone(i, { value: e.target.value })} placeholder="+256 7XX XXX XXX" />
+                onChange={(e) => setPhone(i, { value: e.target.value })} placeholder="+1 555 010 0100" />
               {removeBtn(() => rmPhone(i))}
             </div>
           ))}
@@ -231,17 +231,17 @@ export default function BuilderForm({
         <div>
           <label className={LABEL} style={labelStyle}>Location</label>
           <input className={INPUT} style={inputStyle} value={data.location}
-            onChange={(e) => patch({ location: e.target.value })} placeholder="Kampala, Uganda" />
+            onChange={(e) => patch({ location: e.target.value })} placeholder="San Francisco, USA" />
         </div>
         <div>
           <label className={LABEL} style={labelStyle}>Tagline / short bio</label>
           <textarea className={INPUT + " min-h-[64px] resize-y"} style={inputStyle} value={data.tagline}
-            onChange={(e) => patch({ tagline: e.target.value })} placeholder="Building data & technology learning across Africa." />
+            onChange={(e) => patch({ tagline: e.target.value })} placeholder="Helping teams build better products." />
         </div>
         <div>
           <label className={LABEL} style={labelStyle}>Role / membership line</label>
           <input className={INPUT} style={inputStyle} value={data.role}
-            onChange={(e) => patch({ role: e.target.value })} placeholder="Member, PMI Uganda Chapter" />
+            onChange={(e) => patch({ role: e.target.value })} placeholder="Member, Industry Association" />
         </div>
       </Section>
     </form>

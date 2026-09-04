@@ -47,12 +47,12 @@ export default function GroupBuilderForm({
         <div>
           <label className={LABEL} style={labelStyle}>Group name</label>
           <input className={INPUT} style={inputStyle} value={data.name}
-            onChange={(e) => patch({ name: e.target.value })} placeholder="Sabtech Online Team" />
+            onChange={(e) => patch({ name: e.target.value })} placeholder="Acme Inc. Team" />
         </div>
         <div>
           <label className={LABEL} style={labelStyle}>Organization</label>
           <input className={INPUT} style={inputStyle} value={data.organization}
-            onChange={(e) => patch({ organization: e.target.value })} placeholder="Sabtech Online" />
+            onChange={(e) => patch({ organization: e.target.value })} placeholder="Acme Inc." />
           <span className="text-[11.5px]" style={{ color: "var(--faint)" }}>
             Used for any person in the CSV that doesn&apos;t have their own organization column.
           </span>
