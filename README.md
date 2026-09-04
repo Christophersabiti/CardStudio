@@ -10,6 +10,10 @@ TypeScript, Tailwind CSS, and Supabase**, and ready to deploy on **Vercel**.
 - Card builder with live preview (name, designation, organization, profile photo, multiple phones, emails, websites, eight social platforms, and personal details).
 - vCard 3.0 QR code, the format iPhone and Android cameras most reliably save.
 - Save a card to Supabase and get a public page at `/c/<slug>` with its own QR.
+- Save the card itself as a PNG image ("Save Digital Card"), not just the QR.
+- **Group cards**: upload a CSV of people and get a public page at `/g/<slug>`
+  whose QR leads to an "Add all to contacts" download — everyone in the group
+  in one `.vcf`, which phones offer to bulk-import in a single step.
 - White-label brand system (neutral default, plus PMI Uganda and Sabtech presets).
 - No login for the MVP. All Supabase access is server-side via the service-role key, so auth can be added later without restructuring.
 
@@ -34,7 +38,8 @@ TypeScript, Tailwind CSS, and Supabase**, and ready to deploy on **Vercel**.
 
 2. **Create a Supabase project** at https://supabase.com, then run the schema.
    Open the Supabase SQL editor and paste the contents of
-   `supabase/migrations/0001_init.sql`, or use the Supabase CLI:
+   `supabase/migrations/0001_init.sql`, then `0002_groups.sql`, or use the
+   Supabase CLI:
 
    ```bash
    supabase link --project-ref <your-ref>
@@ -91,26 +96,37 @@ app/
   layout.tsx            Root layout, fonts, brand CSS variables
   page.tsx              The card builder (home)
   c/[slug]/page.tsx     Public card page (server-rendered, with QR)
+  g/[slug]/page.tsx     Public group page (server-rendered, with QR)
   api/cards/route.ts    POST: create a card, returns a slug
+  api/groups/route.ts   POST: create a group, returns a slug
 components/
-  Studio.tsx            Builder shell (client): state, preview, save
-  BuilderForm.tsx       All the input fields
+  Studio.tsx            Builder shell (client): mode toggle, state, preview, save
+  BuilderForm.tsx       Single-card input fields
   CardPreview.tsx       The card itself (shared by builder + public page)
-  CardActions.tsx       Add-to-contacts / Save QR / Copy / Print
+  CardActions.tsx       Add-to-contacts / Save QR / Copy vCard / Save Digital Card
+  GroupBuilderForm.tsx  Group name/org/tagline + CSV upload
+  GroupPreview.tsx      The group card (name roster), mirrors CardPreview
+  GroupActions.tsx      Add all to contacts / Save QR / Copy vCard / Save Digital Card
+  FormSection.tsx       Shared numbered-section wrapper for both builder forms
   Header.tsx            Brand header
   icons.tsx             Inline SVG icons
 lib/
   brand.ts              White-label brand presets
-  types.ts              CardData and CardRecord types
-  vcard.ts              vCard 3.0 builder
+  types.ts              CardData/GroupData/CardRecord/GroupRecord types
+  vcard.ts              vCard 3.0 builder (single + batch/group)
+  csv.ts                CSV parser for bulk-contact upload
   qr.ts                 QR data-URL generator
   slug.ts               Short unique slugs
   socials.ts            Social platform config
+  download.ts           Shared blob-download helpers
+  captureCard.ts        PNG capture of a rendered card (html-to-image)
   cards.ts              Supabase card create/read (server)
+  groups.ts             Supabase group create/read (server)
   supabase/server.ts    Service-role client (server only)
   supabase/client.ts    Anon browser client (for future auth)
 supabase/
   migrations/0001_init.sql
+  migrations/0002_groups.sql
 ```
 
 ## Roadmap / next steps

@@ -7,14 +7,16 @@ import { saveCardAsPng } from "@/lib/captureCard";
 const btn =
   "flex-1 min-w-[130px] inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold cursor-pointer transition border";
 
-export default function CardActions({
+export default function GroupActions({
   vcard,
   qrUrl,
   fileBase,
+  memberCount,
 }: {
   vcard: string;
   qrUrl: string;
   fileBase: string;
+  memberCount: number;
 }) {
   const [msg, setMsg] = useState<string>("");
   const [saving, setSaving] = useState(false);
@@ -27,7 +29,7 @@ export default function CardActions({
 
   function saveVcf() {
     downloadBlob(`${fileBase}.vcf`, new Blob([vcard], { type: "text/vcard;charset=utf-8" }));
-    toast("Contact file downloaded");
+    toast(`${memberCount} ${memberCount === 1 ? "contact" : "contacts"} downloaded`);
   }
   function saveQr() {
     if (!qrUrl) return;
@@ -58,23 +60,27 @@ export default function CardActions({
     <div className="w-full">
       <div className="flex flex-wrap gap-2">
         <button
-          className={btn + " text-white"}
+          className={btn + " text-white disabled:opacity-60"}
           style={{ background: "var(--brand-primary)", borderColor: "var(--brand-primary)" }}
           onClick={saveVcf}
+          disabled={memberCount === 0}
         >
-          Add to contacts
+          Add all to contacts
         </button>
+        {qrUrl ? (
+          <button
+            className={btn}
+            style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
+            onClick={saveQr}
+          >
+            Save QR image
+          </button>
+        ) : null}
         <button
-          className={btn}
-          style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
-          onClick={saveQr}
-        >
-          Save QR image
-        </button>
-        <button
-          className={btn}
+          className={btn + " disabled:opacity-60"}
           style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
           onClick={copyVcard}
+          disabled={memberCount === 0}
         >
           Copy vCard
         </button>

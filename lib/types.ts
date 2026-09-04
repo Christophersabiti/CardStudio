@@ -53,3 +53,43 @@ export const emptyCard = (): CardData => ({
   accent: "secondary",
   photo: "",
 });
+
+/** One person inside a bulk-uploaded group, parsed from a CSV row. */
+export interface GroupMember {
+  firstName: string;
+  lastName: string;
+  title: string;
+  organization: string;
+  phone: string;
+  email: string;
+}
+
+/**
+ * A group ("team") card: one shareable page and QR for many people at once.
+ * Stored as JSONB in the `groups` table (column `data`). The QR encodes the
+ * group's public URL (not raw vCard data — a QR can't hold many full vCards),
+ * and that page offers a single .vcf download containing every member so a
+ * phone's contacts app can bulk-import them in one step.
+ */
+export interface GroupData {
+  name: string;
+  organization: string;
+  tagline: string;
+  members: GroupMember[];
+}
+
+/** A row from the `groups` table. */
+export interface GroupRecord {
+  id: string;
+  slug: string;
+  data: GroupData;
+  created_at: string;
+  view_count: number;
+}
+
+export const emptyGroup = (): GroupData => ({
+  name: "",
+  organization: "",
+  tagline: "",
+  members: [],
+});
