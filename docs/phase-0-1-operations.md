@@ -1,7 +1,9 @@
 # Phase 0–1 implementation and operations
 
-Status: release verified locally; production deployment in progress. Connected
-database migrations applied on 5 September 2026. The supplied server key is valid.
+Status: deployed on 5 September 2026 to https://cardstudio-delta.vercel.app.
+Connected database migrations are applied and production secrets are configured.
+GitHub push awaits restored credentials. Public email onboarding is blocked until
+Supabase URL configuration is corrected: a generated link still falls back to localhost.
 
 ## Current verification
 
@@ -28,13 +30,15 @@ database migrations applied on 5 September 2026. The supplied server key is vali
   read-only SQL mode; it made no persistent changes. Do not treat owner-isolation
   behavior as verified by that SQL attempt; the later HTTP integration suite
   independently verified owner isolation.
-- Physical phone scanning/import, real email delivery, and deployment remain
-  outstanding. Existing mobile layout redesign is intentionally Phase 2.
+- Production smoke checks passed: home/login return 200, dashboard redirects to
+  login, missing profiles return 404, and a synthetic email-token confirmation
+  creates a session and redirects to the production dashboard. The test user was removed.
+- Physical phone scanning/import and real email delivery remain outstanding. Existing mobile layout redesign is intentionally Phase 2.
 
 ## Required before release
 
-1. Supply the validated server key to production settings as a server-only secret.
-   The local environment is configured and has passed integration checks.
+1. Production server key is stored as a Vercel Secret; public Supabase settings
+   and the canonical production origin are configured.
 2. Set the canonical site origin and Supabase callback allowlist. Validate an
    email link from an actual mailbox. Production SMTP is an operational prerequisite
    for unrestricted public onboarding; inspect the project's current settings.
@@ -43,7 +47,9 @@ database migrations applied on 5 September 2026. The supplied server key is vali
    database checks, not mocks.
 4. Verify published/updated/unpublished QRs and `.vcf` files on a real iPhone and
    Android device. Test group import at small and representative roster sizes.
-5. Review the resulting app before deploying it. No deployment was performed.
+5. Production deployment is ready: `dpl_8HjwNrJwBR8XNpP3bAgTRx8Ny1QE`.
+   It was built from the committed source only; local secrets and unrelated
+   deliverables were excluded from the upload.
 
 ## Authorization boundary
 
