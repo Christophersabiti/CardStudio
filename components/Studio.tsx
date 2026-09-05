@@ -9,6 +9,7 @@ import { emptyCard, emptyGroup } from "@/lib/types";
 import { buildVcard, buildGroupVcard, contactFileBase, groupFileBase } from "@/lib/vcard";
 import { cardSchema, groupSchema, cardDraftSchema, groupDraftSchema } from "@/lib/validation";
 import { sameContent } from "@/lib/publication";
+import { isCompletedNewDraft } from "@/lib/draft-storage";
 import { qrDataUrl } from "@/lib/qr";
 import BuilderForm from "./BuilderForm";
 import GroupBuilderForm from "./GroupBuilderForm";
@@ -43,6 +44,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
   const [qrResult,setQrResult] = useState({payload:"",url:"",error:""});
   const [origin,setOrigin] = useState("");
   const requestId = useRef<string>("");
+  const completedNewDraft = useRef(false);
   const key = `card_studio_v2:${userId || "guest"}:${kind}:${initial?.slug || "new"}`;
   const guestKey = `card_studio_v2:guest:${kind}:new`;
   const legacyKey = kind === "cards" ? "card_studio_draft_v1" : "card_studio_group_draft_v1";
@@ -55,6 +57,10 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
     requestId.current = crypto.randomUUID();
     try {
       let raw = localStorage.getItem(key) || (!initial && userId ? localStorage.getItem(guestKey) : null);
+      if (!initial && raw && isCompletedNewDraft(JSON.parse(raw))) {
+        localStorage.removeItem(key);
+        raw = null;
+      }
       if (!raw && !initial) { const legacy = localStorage.getItem(legacyKey); if (legacy) raw = JSON.stringify({data:JSON.parse(legacy)}); }
       if(raw) {
         const draft = JSON.parse(raw);
@@ -70,7 +76,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
       }
     } catch {setDraftNotice("Browser draft storage is unavailable. Save your draft online before leaving.");}
     setReady(true);
-    return ()=>{ try {localStorage.setItem(key,JSON.stringify(snapshot.current));}catch{/* Notice is surfaced by autosave. */} };
+    return ()=>{ if(completedNewDraft.current)return; try {localStorage.setItem(key,JSON.stringify(snapshot.current));}catch{/* Notice is surfaced by autosave. */} };
   },[key,guestKey,legacyKey,initial,kind,userId]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -78,6 +84,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
     if(!ready)return;
     snapshot.current={data,revision:record?.revision,requestId:requestId.current};
     const timer=setTimeout(()=>{
+      if(completedNewDraft.current)return;
       try {localStorage.setItem(key,JSON.stringify(snapshot.current));setLocalVersion(JSON.stringify(snapshot.current.data));}
       catch {setDraftNotice("This browser could not save your draft. Save online before leaving.");}
     },300);
@@ -117,11 +124,14 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
       });
       const result=await res.json();if(!res.ok)throw new Error(result.error || "Could not save. Please try again.");
       const next=result.record as StudioRecord;
+      if(!initial)completedNewDraft.current=true;
       setRecord(next);
       if(action!=="unpublish")setData(next.data);
       snapshot.current={data:action==="unpublish"?data:next.data,revision:next.revision,requestId:requestId.current};
       try {
-        localStorage.setItem(key,JSON.stringify(snapshot.current));
+        const savedKey = `card_studio_v2:${userId}:${kind}:${next.slug}`;
+        localStorage.setItem(savedKey,JSON.stringify(snapshot.current));
+        if(!initial)localStorage.removeItem(key);
         if(!initial && userId){localStorage.removeItem(guestKey);localStorage.removeItem(legacyKey);}
       } catch { setDraftNotice("Saved online. Browser draft storage is unavailable."); }
       if(action==="publish")setQrMode("dynamic");
