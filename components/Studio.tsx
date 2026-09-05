@@ -198,7 +198,14 @@ export default function Studio({ brand }: { brand: Brand }) {
               </div>
             </div>
 
-            <CardActions vcard={vcard} qrUrl={qrUrl} fileBase={contactFileBase(data)} />
+            <CardActions
+              vcard={vcard}
+              qrUrl={qrUrl}
+              fileBase={contactFileBase(data)}
+              firstName={data.firstName}
+              lastName={data.lastName}
+              qrAccent={brand.colors.primary}
+            />
 
             {/* Save & share */}
             <div

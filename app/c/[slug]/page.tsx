@@ -48,7 +48,14 @@ export default async function PublicCardPage({ params }: { params: { slug: strin
           </div>
         </div>
 
-        <CardActions vcard={vcard} qrUrl={qr} fileBase={contactFileBase(card.data)} />
+        <CardActions
+          vcard={vcard}
+          qrUrl={qr}
+          fileBase={contactFileBase(card.data)}
+          firstName={card.data.firstName}
+          lastName={card.data.lastName}
+          qrAccent={activeBrand.colors.primary}
+        />
 
         <Link
           href="/"

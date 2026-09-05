@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { downloadBlob, dataUrlToBlob } from "@/lib/download";
+import { downloadBlob } from "@/lib/download";
 import { saveCardAsPng } from "@/lib/captureCard";
+import { downloadQrCard } from "@/lib/downloadQrCard";
 
 const btn =
   "flex-1 min-w-[130px] inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold cursor-pointer transition border";
@@ -11,10 +12,16 @@ export default function CardActions({
   vcard,
   qrUrl,
   fileBase,
+  firstName,
+  lastName,
+  qrAccent,
 }: {
   vcard: string;
   qrUrl: string;
   fileBase: string;
+  firstName: string;
+  lastName: string;
+  qrAccent: string;
 }) {
   const [msg, setMsg] = useState<string>("");
   const [saving, setSaving] = useState(false);
@@ -29,10 +36,23 @@ export default function CardActions({
     downloadBlob(`${fileBase}.vcf`, new Blob([vcard], { type: "text/vcard;charset=utf-8" }));
     toast("Contact file downloaded");
   }
-  function saveQr() {
+  async function saveQr() {
     if (!qrUrl) return;
-    downloadBlob(`${fileBase}_QR.png`, dataUrlToBlob(qrUrl));
-    toast("QR image saved");
+    setSaving(true);
+    try {
+      await downloadQrCard({
+        qrUrl,
+        firstName,
+        lastName,
+        accentColor: qrAccent,
+        filename: `${fileBase}_QR.png`,
+      });
+      toast("Named QR image saved");
+    } catch {
+      toast("Could not save QR image");
+    } finally {
+      setSaving(false);
+    }
   }
   async function copyVcard() {
     try {
@@ -68,8 +88,9 @@ export default function CardActions({
           className={btn}
           style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
           onClick={saveQr}
+          disabled={saving}
         >
-          Save QR image
+          {saving ? "Savingâ€¦" : "Save QR image"}
         </button>
         <button
           className={btn}
