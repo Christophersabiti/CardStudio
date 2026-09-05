@@ -1,135 +1,126 @@
 # Card Studio
 
-A white-label **digital business card builder** with **vCard QR codes**. Anyone
-can build a card in the browser, save it, and get a permanent public link whose
-QR code saves the contact straight to a phone. Built with **Next.js (App Router),
-TypeScript, Tailwind CSS, and Supabase**, and ready to deploy on **Vercel**.
+A branded digital business-card and group-contact builder built with Next.js 16,
+React 19, TypeScript, Tailwind, and Supabase.
 
 ## Features
 
-- Card builder with live preview (name, designation, organization, profile photo, multiple phones, emails, websites, eight social platforms, and personal details).
-- vCard 3.0 QR code, the format iPhone and Android cameras most reliably save.
-- Save a card to Supabase and get a public page at `/c/<slug>` with its own QR.
-- Save the card itself as a PNG image ("Save Digital Card"), not just the QR.
-- **Group cards**: upload a CSV of people and get a public page at `/g/<slug>`
-  whose QR leads to an "Add all to contacts" download — everyone in the group
-  in one `.vcf`, which phones offer to bulk-import in a single step.
-- White-label brand system (neutral default, plus PMI Uganda and Sabtech presets).
-- No login for the MVP. All Supabase access is server-side via the service-role key, so auth can be added later without restructuring.
+- Live card previews, local draft recovery, offline vCard QR codes and named QR/PNG exports.
+- Email-link sign-in and an owner-scoped My Cards dashboard.
+- Private cloud drafts, publication snapshots, stable editable profile links, duplication, unpublishing, and recoverable Trash.
+- CSV group contact bundles, with explicit permission confirmation before public sharing.
+- Dynamic profile QRs after publishing; separately labeled offline contact snapshots.
+- Validated raster images in private storage, served through an ownership/publication check.
+- Strict request validation, byte limits, same-origin writes, durable rate limits and safe error responses.
+- Neutral, PMI Uganda and Sabtech brand presets.
 
-## Tech stack
+Phase 2 mobile redesign/templates and Phase 3 organization administration are not included.
 
-| Layer     | Choice                                  |
-| --------- | --------------------------------------- |
-| Framework | Next.js 14 (App Router)                 |
-| Language  | TypeScript                              |
-| Styling   | Tailwind CSS + CSS variables            |
-| Data      | Supabase (Postgres)                     |
-| QR        | `qrcode`                                |
-| Hosting   | Vercel                                  |
+## Local setup
 
-## Getting started (local)
+Use Node 22 or newer. Install dependencies with `npm ci`.
 
-1. **Install dependencies**
+Copy `env.example` to `.env.local` and provide:
 
-   ```bash
-   npm install
-   ```
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public/anon API key used for authentication and owner-scoped reads |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server secret/service-role key; never expose in browser code or commit |
+| `NEXT_PUBLIC_SITE_URL` | Canonical app origin, e.g. `http://localhost:3000` |
+| `NEXT_PUBLIC_BRAND` | `neutral`, `pmi`, or `sabtech` |
 
-2. **Create a Supabase project** at https://supabase.com, then run the schema.
-   Open the Supabase SQL editor and paste the contents of
-   `supabase/migrations/0001_init.sql`, then `0002_groups.sql`, or use the
-   Supabase CLI:
+Start with `npm run dev`, then open the exact origin configured above.
+Placeholder keys do not work. The app intentionally fails closed if the server
+key or rate-limit database is unavailable.
 
-   ```bash
-   supabase link --project-ref <your-ref>
-   supabase db push
-   ```
+## Database setup
 
-3. **Set environment variables.** Copy the example and fill it in:
+For a new database, apply files in `supabase/migrations` in filename order:
 
-   ```bash
-   cp .env.local.example .env.local
-   ```
+1. `0001_init.sql`
+2. `0002_groups.sql`
+3. `20260905165303_ownership_and_publishing.sql`
+4. `20260905170804_restrict_internal_functions.sql`
 
-   From Supabase → Project Settings → API, copy:
-   - `NEXT_PUBLIC_SUPABASE_URL` — the project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — the anon public key (kept for future auth)
-   - `SUPABASE_SERVICE_ROLE_KEY` — the service_role key (**server only, keep secret**)
+The two timestamped migrations have already been applied to project
+`jnwkmzirnrqutryntley`; do not rerun them there. Their local filenames match the
+remote migration-history versions. The original two baseline files were applied
+manually before migration tracking. If adopting `supabase db push` for this
+existing project, reconcile those baseline history entries through the CLI's
+migration-repair workflow after verifying the existing schema; do not replay all
+historical migrations over the running application.
 
-   Also set `NEXT_PUBLIC_SITE_URL` (http://localhost:3000 for dev) and
-   `NEXT_PUBLIC_BRAND` (`neutral`, `pmi`, or `sabtech`).
+The ownership migration preserves existing anonymous links by copying their
+content into `published_data`. New records default to private. Anonymous legacy
+records are never claimable solely by knowing their public URL.
 
-4. **Run it**
+## Email authentication
 
-   ```bash
-   npm run dev
-   ```
+In Supabase Auth → URL Configuration:
 
-   Open http://localhost:3000, build a card, and click **Save & get shareable link**.
+- Set Site URL to the canonical app origin.
+- Allow the app's `/auth/callback` URL, including its safe `next` query parameter
+  (for example `http://localhost:3000/auth/callback**` locally, and the exact
+  production origin's callback pattern). Avoid broad wildcard hostnames.
+- Enable email authentication and sign-ups if new people should create accounts.
+- Configure production SMTP before inviting real users. Default Supabase email
+  delivery may be restricted to project-team addresses and has tight quotas.
 
-## Deploy to Vercel
+The default email template works with the PKCE callback: request and open the
+link in the same browser, at the same origin. `/auth/confirm` also supports a
+custom token-hash email template when that is configured. No Google OAuth or
+custom email provider is required by the implementation.
 
-1. Push this repo to GitHub (see below).
-2. In Vercel, **New Project → Import** the GitHub repo. Vercel auto-detects Next.js.
-3. Add the same environment variables under **Project Settings → Environment Variables**
-   (set `NEXT_PUBLIC_SITE_URL` to your Vercel URL).
-4. Deploy. Every push to `main` redeploys automatically.
+## Privacy and authorization
 
-## Push to GitHub
+Browser clients have SELECT permission only on cards/groups/media, with owner
+RLS. All mutations pass through server endpoints, which validate the session,
+filter by the verified `owner_id`, validate the payload and apply a shared database
+rate limit. The privileged client is server-only. Public page readers select only
+published snapshots from non-deleted records; there is no anonymous table read.
 
-```bash
-git init
-git add .
-git commit -m "Initial commit: Card Studio"
-git branch -M main
-git remote add origin https://github.com/<you>/card-studio.git
-git push -u origin main
+Images live in `card-studio-private`. The `/api/media/[id]` endpoint checks whether
+the requester owns the image or it is referenced by a currently published card.
+Responses are not publicly cached. Unpublishing stops subsequent hosted access,
+but cannot recall downloaded images, QR screenshots or contact files.
+
+`Save private draft` never overwrites the published snapshot. `Publish updates`
+replaces the snapshot at the existing slug. `Move to Trash` unpublishes and retains
+the record; `Restore as draft` does not republish it. Cloud edits use a revision
+check so an older tab cannot silently overwrite a newer edit.
+
+Rate limits: 30 record mutations/minute per account; 15 direct uploads/minute per
+account; 10 sign-in requests/10 minutes per trusted client IP; 3 sign-in requests/
+10 minutes per email. On Vercel, the server uses its overwritten forwarding
+header. Other hosts use a conservative shared sign-in bucket until trusted proxy
+IP extraction is configured. Email/IP subjects are stored only as keyed hashes.
+
+## Verification
+
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run build
 ```
 
-`.env.local` and `node_modules` are git-ignored, so no secrets are committed.
+The opt-in integration suite requires a valid server key and the migrated test
+project. Start the production build locally, then in another terminal:
 
-## Project structure
-
-```
-app/
-  layout.tsx            Root layout, fonts, brand CSS variables
-  page.tsx              The card builder (home)
-  c/[slug]/page.tsx     Public card page (server-rendered, with QR)
-  g/[slug]/page.tsx     Public group page (server-rendered, with QR)
-  api/cards/route.ts    POST: create a card, returns a slug
-  api/groups/route.ts   POST: create a group, returns a slug
-components/
-  Studio.tsx            Builder shell (client): mode toggle, state, preview, save
-  BuilderForm.tsx       Single-card input fields
-  CardPreview.tsx       The card itself (shared by builder + public page)
-  CardActions.tsx       Add-to-contacts / Save QR / Copy vCard / Save Digital Card
-  GroupBuilderForm.tsx  Group name/org/tagline + CSV upload
-  GroupPreview.tsx      The group card (name roster), mirrors CardPreview
-  GroupActions.tsx      Add all to contacts / Save QR / Copy vCard / Save Digital Card
-  FormSection.tsx       Shared numbered-section wrapper for both builder forms
-  Header.tsx            Brand header
-  icons.tsx             Inline SVG icons
-lib/
-  brand.ts              White-label brand presets
-  types.ts              CardData/GroupData/CardRecord/GroupRecord types
-  vcard.ts              vCard 3.0 builder (single + batch/group)
-  csv.ts                CSV parser for bulk-contact upload
-  qr.ts                 QR data-URL generator
-  slug.ts               Short unique slugs
-  socials.ts            Social platform config
-  download.ts           Shared blob-download helpers
-  captureCard.ts        PNG capture of a rendered card (html-to-image)
-  cards.ts              Supabase card create/read (server)
-  groups.ts             Supabase group create/read (server)
-  supabase/server.ts    Service-role client (server only)
-  supabase/client.ts    Anon browser client (for future auth)
-supabase/
-  migrations/0001_init.sql
-  migrations/0002_groups.sql
+```sh
+CARD_STUDIO_TEST_ORIGIN=http://localhost:3000 npm run test:integration
 ```
 
-## Roadmap / next steps
+It creates synthetic accounts without sending email and removes only their test
+records, images and accounts in a `finally` block. It checks owner isolation,
+private/public snapshots, validation, media revocation, duplication, Trash,
+conflicts, group consent, session-cookie clearing, and concurrent rate limiting.
+Do not point it at an unrelated project. Physical iPhone/Android camera and
+Contacts-app tests remain a separate release check; a `.vcf` download is not proof
+that every contact was imported.
 
-See `CLAUDE.md` for the intended direction, including authentication, per-user
-card management, and moving profile photos to Supabase Storage.
+## Operations
+
+See `docs/phase-0-1-operations.md` for migration recovery, legacy ownership,
+retention, deployment prerequisites and current verification status.

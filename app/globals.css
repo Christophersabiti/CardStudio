@@ -161,3 +161,13 @@ h1, h2, h3 {
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.cs-panel { border: 1px solid var(--line); background: var(--surface); padding: 1.25rem; border-radius: 1rem; }
+.cs-muted { color: var(--muted); }
+.cs-error { color: #b42318; font-size: .875rem; }
+.cs-input { border: 1px solid var(--field-line); background: var(--field); color: var(--ink); border-radius: .5rem; padding: .65rem .75rem; }
+.cs-button { border: 1px solid var(--field-line); border-radius: .65rem; padding: .65rem .9rem; font-size: .875rem; font-weight: 600; background: var(--field); color: var(--ink); cursor: pointer; text-decoration: none; }
+.cs-primary { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+:where(a,button,input,select,textarea):focus-visible { outline: 3px solid var(--brand-primary); outline-offset: 3px; }
+@media (prefers-color-scheme: dark) { .cs-error { color: #fda29b; } }

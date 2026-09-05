@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { prepareImage } from "@/lib/image-client";
 import type { CardData, Phone, PhoneType } from "@/lib/types";
 import { SOCIALS } from "@/lib/socials";
 import Section from "./FormSection";
@@ -17,53 +19,19 @@ export default function BuilderForm({
   setData,
 }: {
   data: CardData;
-  setData: (d: CardData) => void;
+  setData: React.Dispatch<React.SetStateAction<CardData>>;
 }) {
-  const patch = (p: Partial<CardData>) => setData({ ...data, ...p });
+  const patch = (p: Partial<CardData>) => setData(current => ({ ...current, ...p }));
 
-  function handlePhoto(file: File | undefined) {
+  const [imageError, setImageError] = useState("");
+  const [imageBusy, setImageBusy] = useState(false);
+  async function handleImage(file: File | undefined, field: "photo" | "logo") {
     if (!file) return;
-    const fr = new FileReader();
-    fr.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        const max = 420;
-        const scale = Math.min(1, max / Math.max(img.width, img.height));
-        const w = Math.round(img.width * scale);
-        const h = Math.round(img.height * scale);
-        const cv = document.createElement("canvas");
-        cv.width = w;
-        cv.height = h;
-        cv.getContext("2d")?.drawImage(img, 0, 0, w, h);
-        patch({ photo: cv.toDataURL("image/jpeg", 0.85) });
-      };
-      img.src = ev.target?.result as string;
-    };
-    fr.readAsDataURL(file);
+    setImageError(""); setImageBusy(true);
+    try { patch({ [field]: await prepareImage(file, field === "logo" ? 160 : 420, field === "logo") }); }
+    catch (e) { setImageError(e instanceof Error ? e.message : "Could not read this image."); }
+    finally { setImageBusy(false); }
   }
-
-  function handleLogo(file: File | undefined) {
-    if (!file) return;
-    const fr = new FileReader();
-    fr.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        const max = 160;
-        const scale = Math.min(1, max / Math.max(img.width, img.height));
-        const w = Math.round(img.width * scale);
-        const h = Math.round(img.height * scale);
-        const cv = document.createElement("canvas");
-        cv.width = w;
-        cv.height = h;
-        cv.getContext("2d")?.drawImage(img, 0, 0, w, h);
-        // PNG, not JPEG: preserves transparency so the badge blends into the card corner.
-        patch({ logo: cv.toDataURL("image/png") });
-      };
-      img.src = ev.target?.result as string;
-    };
-    fr.readAsDataURL(file);
-  }
-
   // ---- dynamic list helpers ----
   const setPhone = (i: number, p: Partial<Phone>) => {
     const phones = data.phones.map((ph, idx) => (idx === i ? { ...ph, ...p } : ph));
@@ -91,6 +59,7 @@ export default function BuilderForm({
       className="w-9 h-[38px] rounded-lg border text-lg leading-none cursor-pointer"
       style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--faint)" }}
       title="Remove"
+      aria-label="Remove contact field"
     >
       ×
     </button>
@@ -114,6 +83,8 @@ export default function BuilderForm({
   return (
     <form className="flex flex-col gap-4" autoComplete="off" onSubmit={(e) => e.preventDefault()}>
       <Section n={1} title="Identity">
+        {imageError && <p role="alert" className="cs-error">{imageError}</p>}
+        {imageBusy && <p role="status" className="text-sm">Preparing image…</p>}
         <div className="flex gap-3.5 items-center">
           <div
             className="w-[74px] h-[74px] rounded-full grid place-items-center overflow-hidden flex-none border-2 font-display font-extrabold text-2xl"
@@ -138,9 +109,10 @@ export default function BuilderForm({
               Upload photo
               <input
                 type="file"
-                accept="image/*"
-                hidden
-                onChange={(e) => handlePhoto(e.target.files?.[0])}
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                disabled={imageBusy}
+                onChange={(e) => handleImage(e.target.files?.[0], "photo")}
               />
             </label>
             {data.photo ? (
@@ -179,9 +151,10 @@ export default function BuilderForm({
               {data.logo ? "Replace logo" : "Upload logo"}
               <input
                 type="file"
-                accept="image/*"
-                hidden
-                onChange={(e) => handleLogo(e.target.files?.[0])}
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                disabled={imageBusy}
+                onChange={(e) => handleImage(e.target.files?.[0], "logo")}
               />
             </label>
             {data.logo ? (
@@ -203,24 +176,24 @@ export default function BuilderForm({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={LABEL} style={labelStyle}>First name</label>
-            <input className={INPUT} style={inputStyle} value={data.firstName}
+            <label htmlFor="card-firstName" className={LABEL} style={labelStyle}>First name</label>
+            <input className={INPUT} style={inputStyle} id="card-firstName" value={data.firstName}
               onChange={(e) => patch({ firstName: e.target.value })} placeholder="Jane" />
           </div>
           <div>
-            <label className={LABEL} style={labelStyle}>Last name</label>
-            <input className={INPUT} style={inputStyle} value={data.lastName}
+            <label htmlFor="card-lastName" className={LABEL} style={labelStyle}>Last name</label>
+            <input className={INPUT} style={inputStyle} id="card-lastName" value={data.lastName}
               onChange={(e) => patch({ lastName: e.target.value })} placeholder="Doe" />
           </div>
         </div>
         <div>
-          <label className={LABEL} style={labelStyle}>Designation / Job title</label>
-          <input className={INPUT} style={inputStyle} value={data.title}
+          <label htmlFor="card-title" className={LABEL} style={labelStyle}>Designation / Job title</label>
+          <input className={INPUT} style={inputStyle} id="card-title" value={data.title}
             onChange={(e) => patch({ title: e.target.value })} placeholder="Product Manager" />
         </div>
         <div>
-          <label className={LABEL} style={labelStyle}>Company / Organization</label>
-          <input className={INPUT} style={inputStyle} value={data.organization}
+          <label htmlFor="card-organization" className={LABEL} style={labelStyle}>Company / Organization</label>
+          <input className={INPUT} style={inputStyle} id="card-organization" value={data.organization}
             onChange={(e) => patch({ organization: e.target.value })} placeholder="Acme Inc." />
         </div>
       </Section>
@@ -229,13 +202,13 @@ export default function BuilderForm({
         <div className="flex flex-col gap-2.5">
           {data.phones.map((p, i) => (
             <div key={i} className="grid gap-2 items-center" style={{ gridTemplateColumns: "96px 1fr 36px" }}>
-              <select className={INPUT} style={inputStyle} value={p.type}
+              <select className={INPUT} style={inputStyle} aria-label={`Phone ${i + 1} type`} value={p.type}
                 onChange={(e) => setPhone(i, { type: e.target.value as PhoneType })}>
                 {PHONE_TYPES.map((t) => (
                   <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>
                 ))}
               </select>
-              <input className={INPUT} style={inputStyle} type="tel" value={p.value}
+              <input className={INPUT} style={inputStyle} type="tel" aria-label={`Phone ${i + 1}`} value={p.value}
                 onChange={(e) => setPhone(i, { value: e.target.value })} placeholder="+1 555 010 0100" />
               {removeBtn(() => rmPhone(i))}
             </div>
@@ -251,7 +224,7 @@ export default function BuilderForm({
         <div className="flex flex-col gap-2.5">
           {data.emails.map((e, i) => (
             <div key={i} className="grid gap-2 items-center" style={{ gridTemplateColumns: "1fr 36px" }}>
-              <input className={INPUT} style={inputStyle} type="email" value={e}
+              <input className={INPUT} style={inputStyle} type="email" aria-label={`Email ${i + 1}`} value={e}
                 onChange={(ev) => setEmail(i, ev.target.value)} placeholder="name@email.com" />
               {removeBtn(() => rmEmail(i))}
             </div>
@@ -262,7 +235,7 @@ export default function BuilderForm({
         <div className="flex flex-col gap-2.5">
           {data.websites.map((w, i) => (
             <div key={i} className="grid gap-2 items-center" style={{ gridTemplateColumns: "1fr 36px" }}>
-              <input className={INPUT} style={inputStyle} type="url" value={w}
+              <input className={INPUT} style={inputStyle} type="url" aria-label={`Website ${i + 1}`} value={w}
                 onChange={(ev) => setWeb(i, ev.target.value)} placeholder="https://your-website.com" />
               {removeBtn(() => rmWeb(i))}
             </div>
@@ -281,7 +254,7 @@ export default function BuilderForm({
                 <s.icon width={14} height={14} />
               </span>
               <input className="flex-1 min-w-0 bg-transparent border-0 outline-none py-1.5 text-sm"
-                style={{ color: "var(--ink)" }} type="url" value={data.socials[s.key] || ""}
+                style={{ color: "var(--ink)" }} type="url" aria-label={s.name + " profile URL"} value={data.socials[s.key] || ""}
                 onChange={(e) => setSocial(s.key, e.target.value)} placeholder={s.placeholder} />
             </div>
           ))}
@@ -293,18 +266,18 @@ export default function BuilderForm({
 
       <Section n={5} title="Personal details">
         <div>
-          <label className={LABEL} style={labelStyle}>Location</label>
-          <input className={INPUT} style={inputStyle} value={data.location}
+          <label htmlFor="card-location" className={LABEL} style={labelStyle}>Location</label>
+          <input className={INPUT} style={inputStyle} id="card-location" value={data.location}
             onChange={(e) => patch({ location: e.target.value })} placeholder="San Francisco, USA" />
         </div>
         <div>
-          <label className={LABEL} style={labelStyle}>Tagline / short bio</label>
-          <textarea className={INPUT + " min-h-[64px] resize-y"} style={inputStyle} value={data.tagline}
+          <label htmlFor="card-tagline" className={LABEL} style={labelStyle}>Tagline / short bio</label>
+          <textarea className={INPUT + " min-h-[64px] resize-y"} style={inputStyle} id="card-tagline" value={data.tagline}
             onChange={(e) => patch({ tagline: e.target.value })} placeholder="Helping teams build better products." />
         </div>
         <div>
-          <label className={LABEL} style={labelStyle}>Role / membership line</label>
-          <input className={INPUT} style={inputStyle} value={data.role}
+          <label htmlFor="card-role" className={LABEL} style={labelStyle}>Role / membership line</label>
+          <input className={INPUT} style={inputStyle} id="card-role" value={data.role}
             onChange={(e) => patch({ role: e.target.value })} placeholder="Member, Industry Association" />
         </div>
       </Section>

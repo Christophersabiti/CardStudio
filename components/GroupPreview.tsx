@@ -4,12 +4,7 @@ import { UsersIcon, ScanIcon } from "./icons";
 
 const MAX_VISIBLE_NAMES = 10;
 
-function groupInitials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return "?";
-  const combined = words.slice(0, 2).map((w) => w[0]).join("");
-  return combined.toUpperCase();
-}
+
 
 function memberName(m: GroupData["members"][number]): string {
   return `${m.firstName} ${m.lastName}`.trim() || "Unnamed";
@@ -19,7 +14,7 @@ function memberName(m: GroupData["members"][number]): string {
  * Presentational group card — same visual language as CardPreview (shares its
  * .cs-card / .cs-aside CSS) but shows a roster of names instead of one
  * person's contact details. Used by both the builder preview and the public
- * group page. Before the group is saved there's no public URL yet, so qrUrl
+ * group page. Before the group is published there's no public URL yet, so qrUrl
  * may be empty — the QR chip shows a placeholder in that case.
  */
 export default function GroupPreview({
@@ -73,19 +68,19 @@ export default function GroupPreview({
         <div className="cs-qr-chip">
           {qrUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={qrUrl} alt="Scan to save all contacts" width={128} height={128} />
+            <img src={qrUrl} alt="Scan to view group contacts" width={128} height={128} />
           ) : (
             <div
               style={{ width: 128, height: 128, display: "grid", placeItems: "center", textAlign: "center" }}
             >
               <span style={{ fontSize: 9.5, fontWeight: 600, color: "var(--muted)", lineHeight: 1.3 }}>
-                QR appears after you save
+                Publish current details for a QR
               </span>
             </div>
           )}
         </div>
         <div className="cs-qr-cta">
-          <ScanIcon /> Scan to save all contacts
+          <ScanIcon /> Scan to view group contacts
         </div>
 
         {brand.logo ? (

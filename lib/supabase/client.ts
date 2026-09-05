@@ -1,9 +1,8 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 /**
- * Browser Supabase client using the ANON key. Not used by the MVP (which keeps
- * all access server-side) — this is here so client-side auth drops in later
- * without restructuring. Safe to expose: the anon key is public.
+ * Public browser client. Table reads are owner-scoped by RLS; mutations use
+ * the application's authenticated and validated server endpoints.
  */
 export function createBrowserSupabase() {
   return createBrowserClient(

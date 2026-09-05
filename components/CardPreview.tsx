@@ -2,6 +2,7 @@ import type { CardData } from "@/lib/types";
 import type { Brand } from "@/lib/brand";
 import { SOCIALS } from "@/lib/socials";
 import { PhoneIcon, MailIcon, WebIcon, PinIcon, ScanIcon } from "./icons";
+import { safeWebUrl } from "@/lib/validation";
 
 function initials(data: CardData): string {
   const a = (data.firstName || "").trim()[0] || "";
@@ -23,10 +24,12 @@ export default function CardPreview({
   data,
   qrUrl,
   brand,
+  qrLabel = "Scan to save my contact",
 }: {
   data: CardData;
   qrUrl: string;
   brand: Brand;
+  qrLabel?: string;
 }) {
   const name = `${data.firstName || ""} ${data.lastName || ""}`.trim();
   const phones = data.phones.filter((p) => p.value).slice(0, 3);
@@ -74,7 +77,7 @@ export default function CardPreview({
         </div>
 
         <div className="cs-socials">
-          {SOCIALS.filter((s) => data.socials[s.key]).map((s) => (
+          {SOCIALS.filter((s) => data.socials[s.key] && safeWebUrl(data.socials[s.key])).map((s) => (
             <a
               key={s.key}
               className="cs-badge"
@@ -82,6 +85,7 @@ export default function CardPreview({
               target="_blank"
               rel="noopener noreferrer"
               title={s.name}
+              aria-label={s.name}
               style={{ background: s.color }}
             >
               <s.icon width={14} height={14} />
@@ -108,13 +112,13 @@ export default function CardPreview({
         <div className="cs-qr-chip">
           {qrUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={qrUrl} alt="Scan to save contact" width={128} height={128} />
+            <img src={qrUrl} alt={qrLabel} width={128} height={128} />
           ) : (
             <div style={{ width: 128, height: 128 }} />
           )}
         </div>
         <div className="cs-qr-cta">
-          <ScanIcon /> Scan to save my contact
+          <ScanIcon /> {qrLabel}
         </div>
 
         {data.logo || brand.logo ? (

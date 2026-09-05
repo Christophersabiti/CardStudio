@@ -28,6 +28,7 @@ export default function Header({ brand }: { brand: Brand }) {
           </span>
         </span>
       </Link>
+      <nav className="ml-auto flex gap-3 text-sm font-semibold" aria-label="Main navigation"><Link href="/">Create</Link><Link href="/dashboard">My cards / Sign in</Link></nav>
     </header>
   );
 }

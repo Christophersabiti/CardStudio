@@ -14,26 +14,27 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const group = await getGroupBySlug(params.slug).catch(() => null);
+  const group = await getGroupBySlug((await params).slug).catch(() => null);
   if (!group) return { title: "Group not found" };
   return {
+    robots: { index: false, follow: false },
     title: `${group.data.name} · ${activeBrand.name}`,
     description: `${group.data.members.length} contacts · ${activeBrand.name}`,
   };
 }
 
-export default async function PublicGroupPage({ params }: { params: { slug: string } }) {
-  const group = await getGroupBySlug(params.slug);
+export default async function PublicGroupPage({ params }: { params: Promise<{ slug: string }> }) {
+  const group = await getGroupBySlug((await params).slug);
   if (!group) notFound();
 
-  await incrementGroupViews(params.slug);
+  await incrementGroupViews((await params).slug);
 
   const vcard = buildGroupVcard(group.data);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const publicUrl = `${siteUrl}/g/${params.slug}`;
-  const qr = await qrDataUrl(publicUrl, { width: 512 });
+  const publicUrl = `${siteUrl}/g/${(await params).slug}`;
+  const qr = await qrDataUrl(publicUrl, { width: 512 }).catch(() => "");
 
   return (
     <>
@@ -54,6 +55,8 @@ export default async function PublicGroupPage({ params }: { params: { slug: stri
           fileBase={groupFileBase(group.data)}
           memberCount={group.data.members.length}
         />
+
+        {!qr && <p role="alert" className="cs-error">The QR could not be generated. You can still download the contact file above.</p>}
 
         <Link
           href="/"

@@ -1,119 +1,90 @@
-# CLAUDE.md — Card Studio
+# Card Studio — repository guidance
 
-Context for Claude Code working in this repository. Read this first.
+## Current application
 
-## What this is
+Next.js 16 App Router, React 19, TypeScript, Tailwind, Supabase Auth/Postgres/
+private Storage. Phase 0 and Phase 1 are implemented. Read `README.md` and
+`docs/phase-0-1-operations.md` for setup, current verification and deployment gaps.
 
-A white-label digital business card builder. Users fill in a card, see a live
-preview, and save it to Supabase to get a public page at `/c/<slug>` whose QR
-code is a vCard 3.0 that saves the contact to a phone. Next.js App Router +
-TypeScript + Tailwind + Supabase, deployed on Vercel.
+The server key was validated on 5 September 2026 and all 38 live integration
+checks passed. Never print keys or substitute a public key for the server
+credential. Revalidate environment configuration when changing deployment targets.
 
-There's also a group/bulk mode: upload a CSV of people and get a public page
-at `/g/<slug>` whose QR leads to a "download everyone as contacts" action.
+## Before committing
 
-## First run
+Run `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build`.
+The opt-in `npm run test:integration` requires the local app and a real server key;
+it creates and removes synthetic test accounts, without sending email.
 
-```bash
-npm install
-cp .env.local.example .env.local   # then fill in Supabase values
-npm run dev
-```
+## Authorization and publication invariants
 
-Then run `supabase/migrations/0001_init.sql` and `0002_groups.sql` (in that
-order) in the Supabase SQL editor.
+- `lib/supabase/session.ts` uses cookie-based SSR sessions; verify identity with
+  `getUser`, never trust an unverified `getSession().user` for access decisions.
+  `proxy.ts` refreshes cookies; every mutation independently checks identity.
+- `lib/supabase/server.ts` is privileged and `server-only`. Every mutation must
+  filter by the verified `owner_id`, not a client-provided ID or email. Never
+  import the admin client into client components.
+- Browser database clients have owner-scoped SELECT only. INSERT/UPDATE/DELETE
+  are revoked so they cannot bypass validation, origin checks and rate limiting.
+- `data` is a private draft. Public pages must read only `published_data` where
+  `published=true` and `deleted_at IS NULL`. Do not use `data` on public pages.
+- Save draft leaves the published snapshot unchanged. Publish updates replaces
+  the snapshot at the same slug. Mutations compare `revision` to prevent lost
+  updates. Creation/duplication IDs make retry requests idempotent.
+- Deletion is recoverable Trash and must unpublish. Restore stays private.
+- Group publishing requires an explicit confirmation of authorization to share
+  all member details. Do not infer consent from an earlier draft save.
+- Legacy anonymous cards have no self-service claim route. Public slugs and
+  visible contact details do not prove ownership.
+- The database rate limiter is shared across serverless instances, atomically
+  updated and callable only by the service role. Fail closed when unavailable.
+- Keep arbitrary forwarding headers out of authentication/rate-limit decisions.
+  Vercel's overwritten header is explicitly trusted; other hosts require their
+  own verified proxy configuration.
 
-Before committing changes, run:
+## Data and UI
 
-```bash
-npm run typecheck   # tsc --noEmit
-npm run build       # next build — the real check
-```
+- `lib/types.ts`: CardData, GroupData and their saved-record lifecycle fields.
+- `lib/validation.ts`: strict cloud schemas and bounded local recovery schemas.
+  Keep fields aligned with forms, vCards and types. URL protocols are allowlisted.
+- `components/Studio.tsx`: guest/account-scoped local drafts and editing. Restore
+  browser data only after hydration, and never overwrite an existing draft with
+  initial server defaults. Async image/file updates must merge into current form
+  state, not a stale closure.
+- `components/CardPreview.tsx` stays presentational and shared by builder/public
+  pages. Dynamic QR labeling differs from offline QR labeling.
+- Single-card offline QR encodes a vCard snapshot. Dynamic QR encodes the published
+  profile URL. Group QR encodes the published group URL. Never display/export a
+  previous QR alongside unsaved or unpublished changes as though they match.
+- Keep named QR PNG export (`lib/downloadQrCard.ts`) and its quiet zone intact.
+  Full-card PNG capture uses `html-to-image` through `lib/captureCard.ts`.
+- Group CSV importing remains a lightweight bundle flow. Organization workspaces,
+  row editing/mapping and team provisioning belong to later phases.
 
-Note: this project was scaffolded and handed off before a full local
-`npm install`/build was run in the authoring environment, so the first build is
-the definitive validation. If the build surfaces a minor type or import issue,
-fix it in place — the architecture below is the intended design.
+## Image storage
 
-## Architecture and conventions
+`lib/media.ts` validates, decodes, resizes and re-encodes raster uploads. Images
+live in a private bucket. `/api/media/[id]` checks ownership or a published card
+reference on every request and does not publicly cache its response. Do not turn
+this into a public bucket or persist signed URLs in card data: doing so weakens
+revocation. Retain media referenced by drafts, published snapshots and Trash.
 
-- **No auth in the MVP (by design).** All Supabase access is server-side using
-  the **service-role key** (`lib/supabase/server.ts`), through `lib/cards.ts`,
-  the API route, and server components. The service-role client must never be
-  imported into a client component — `lib/supabase/server.ts` and `lib/cards.ts`
-  start with `import "server-only"` to enforce this at build time.
-- **Row Level Security is ON with no anon policies.** The browser cannot read or
-  write the `cards` table directly; the server (service role) bypasses RLS. This
-  is intentional and is the clean base for adding auth.
-- **`CardData`** (`lib/types.ts`) is the single source of truth for a card's
-  shape and is stored as JSONB in `cards.data`. Keep the type, the builder form,
-  the vCard builder, and the migration in sync when you change fields.
-- **Group cards (`groups` table) are a separate, lighter-weight flow**, not a
-  variant of `CardData`. `GroupData` (`lib/types.ts`) holds a group name plus
-  `GroupMember[]` populated by uploading a CSV (`lib/csv.ts` — CSV-only by
-  design, no manual per-row editing) and is stored as JSONB in `groups.data`.
-  `buildGroupVcard` (`lib/vcard.ts`) concatenates one `VCARD` block per member
-  into a single `.vcf`. Crucially, the group's QR encodes its **public URL**
-  (`/g/<slug>`), not vCard data directly — a QR can't hold many full vCards,
-  so scanning it opens the public page and "Add all to contacts" downloads the
-  combined `.vcf`, which phones offer to bulk-import. This is why the live
-  preview's QR chip in group mode is a placeholder until the group is saved
-  (single-card QRs, by contrast, encode the vCard itself and work pre-save).
-  `Studio.tsx` toggles between the single-card and group flows client-side;
-  `GroupPreview`/`GroupActions` mirror `CardPreview`/`CardActions` but are
-  separate components since the two card shapes don't overlap much.
-- **`CardPreview.tsx` is presentational and shared** by the builder (client,
-  QR computed in the browser) and the public page (server, QR computed in Node).
-  It takes a ready `qrUrl` string so it works in both environments — do not add
-  hooks or data fetching to it.
-- **Brand is white-label** (`lib/brand.ts`). Colors flow into Tailwind through
-  CSS variables set on `<body>` in `app/layout.tsx`. Switch brand via
-  `NEXT_PUBLIC_BRAND` (`neutral` | `pmi` | `sabtech`). Add presets there.
-- **vCard is 3.0** (`lib/vcard.ts`) for best iOS/Android save compatibility;
-  lines are CRLF-joined. Socials are emitted as `URL:` lines.
-- **Profile photos are stored inline** as compressed data URLs inside the card
-  JSON for the MVP (resized to ~420px client-side). The API route caps the whole
-  card at ~400 KB. See the storage step below to move photos out.
+## Configuration and migrations
 
-## Roadmap (intended next steps, in order)
+Brand presets in `lib/brand.ts` feed CSS variables from the root layout. Preserve
+neutral, PMI Uganda and Sabtech presets. The canonical site origin must match the
+origin used for email login and Supabase's redirect allowlist.
 
-1. **Authentication (Supabase Auth).** Add email magic link and/or Google. Use
-   `@supabase/ssr` (already a dependency) with middleware for session cookies.
-   `lib/supabase/client.ts` already has the anon browser client stub.
-2. **Per-user cards.** Add `owner_id uuid references auth.users` to `cards`, plus
-   RLS policies: owners can select/insert/update/delete their own rows, and a
-   public read policy for published cards (e.g. a `published boolean`). Once RLS
-   allows scoped access, move reads to the anon client and retire the service-role
-   path for user actions. Add a `/dashboard` to list and manage a user's cards.
-3. **Profile photos in Supabase Storage.** Create a public `avatars` bucket,
-   upload on the client, store the public URL in `CardData.photo`, and raise the
-   API size cap. This shrinks rows and lets the QR/card load images by URL.
-4. **Editing.** Add `PATCH /api/cards/[slug]` (owner-gated) and an edit route
-   that reuses `Studio`/`BuilderForm`.
-5. **Abuse controls for public save.** Add rate limiting and simple validation
-   to `POST /api/cards` (e.g. IP-based limit, link/spam checks) since it is
-   currently open.
-6. **Analytics.** `cards.view_count` is already incremented on each public view
-   via the `increment_card_views` RPC; surface it in the dashboard.
+Async Next.js route params and `cookies()` must be awaited. `next lint` has been
+replaced with ESLint's CLI; configuration is `eslint.config.mjs`. ESLint 9 remains
+pinned for compatibility with the upstream Next.js React lint plugin.
 
-## Gotchas
+Use the Supabase CLI to create migration files. Keep local migration versions
+aligned with the applied remote versions. The original `0001`/`0002` schemas were
+applied manually before history tracking; reconcile their baseline history before
+using CLI push against that existing project. Never replay old privileged public
+read behavior over data containing private drafts.
 
-- Params are synchronous (Next 14). If you upgrade to Next 15, `params` becomes a
-  Promise and these pages/handlers must `await` it.
-- `qrcode` runs in both Node and the browser; keep `lib/qr.ts` environment-neutral.
-- Downloads (`lib/download.ts`) use blob + anchor, which works in a normal
-  browser (this is a real Next app, not a sandboxed artifact). "Save Digital
-  Card" rasterizes the `.cs-print` node to PNG via `html-to-image`
-  (`lib/captureCard.ts`) — not `html2canvas`, which can't render the
-  `color-mix()`/CSS-variable gradients in `.cs-aside`.
-- **If this repo lives on a Parallels shared folder** (Mac -> Windows, e.g.
-  `\\Mac\Home\...` / a mapped drive like `Y:\`), `npm run dev` works fine, but
-  a production `npm run build` can fail with
-  `EISDIR: illegal operation on a directory, readlink ...` — the virtualized
-  filesystem doesn't reliably support the `readlink` calls webpack makes while
-  tracing the build. `next.config.mjs` sets `resolve.symlinks = false`, which
-  fixes it for `node_modules`, but the same error can still hit project source
-  files. If `npm run build` fails this way, copy the project to a native path
-  (e.g. `C:\...`, not a `\\Mac\...` share), `npm install` and `npm run build`
-  there instead — the source of truth stays on the share, this is only to get
-  a clean build check.
+The webpack symlink workaround remains for Parallels/shared-folder compatibility.
+Scripts explicitly use webpack. If a shared-filesystem build fails with EISDIR,
+verify on a native filesystem; do not redesign the app around that environment.

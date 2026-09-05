@@ -4,7 +4,7 @@ import type { CardData, GroupData, GroupMember } from "./types";
 function esc(v: string): string {
   return (v || "")
     .replace(/\\/g, "\\\\")
-    .replace(/\n/g, "\\n")
+    .replace(/\r\n|\r|\n/g, "\\n")
     .replace(/,/g, "\\,")
     .replace(/;/g, "\\;");
 }
@@ -44,12 +44,12 @@ export function buildVcard(data: CardData): string {
   }
   if (data.tagline) lines.push(`NOTE:${esc(data.tagline.replace(/\n/g, " "))}`);
   lines.push("END:VCARD");
-  return lines.join("\r\n");
+  return lines.map(foldLine).join("\r\n") + "\r\n";
 }
 
 /** Suggested filename base, e.g. "Jane_Doe". */
 export function contactFileBase(data: CardData): string {
-  const base = `${data.firstName}_${data.lastName}`.trim().replace(/\s+/g, "_");
+  const base = `${data.firstName} ${data.lastName}`.trim().replace(/[^\p{L}\p{N}._-]+/gu, "_").slice(0,100);
   return base || "contact";
 }
 
@@ -67,7 +67,7 @@ function buildMemberVcard(m: GroupMember, groupOrg: string): string {
   if (m.phone) lines.push(`TEL;TYPE=CELL,VOICE:${esc(m.phone)}`);
   if (m.email) lines.push(`EMAIL;TYPE=INTERNET:${esc(m.email)}`);
   lines.push("END:VCARD");
-  return lines.join("\r\n");
+  return lines.map(foldLine).join("\r\n") + "\r\n";
 }
 
 /**
@@ -76,11 +76,23 @@ function buildMemberVcard(m: GroupMember, groupOrg: string): string {
  * a bulk "add N contacts" import in one step.
  */
 export function buildGroupVcard(data: GroupData): string {
-  return data.members.map((m) => buildMemberVcard(m, data.organization)).join("\r\n");
+  return data.members.map((m) => buildMemberVcard(m, data.organization)).join("");
 }
 
 /** Suggested filename base for a group's combined .vcf / image, e.g. "Acme_Inc_Team". */
 export function groupFileBase(data: GroupData): string {
-  const base = data.name.trim().replace(/\s+/g, "_");
+  const base = data.name.trim().replace(/[^\p{L}\p{N}._-]+/gu, "_").slice(0,100);
   return base || "group";
+}
+
+/** Fold at 75 UTF-8 octets without splitting a Unicode code point. */
+function foldLine(line: string): string {
+  const encoder = new TextEncoder();
+  let result = "", width = 0;
+  for (const char of line) {
+    const size = encoder.encode(char).length;
+    if (width + size > 75) { result += "\r\n "; width = 1; }
+    result += char; width += size;
+  }
+  return result;
 }

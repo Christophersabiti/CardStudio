@@ -14,26 +14,28 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const card = await getCardBySlug(params.slug).catch(() => null);
+  const card = await getCardBySlug((await params).slug).catch(() => null);
   if (!card) return { title: "Card not found" };
   const d = card.data;
   const name = `${d.firstName} ${d.lastName}`.trim() || d.organization || "Digital business card";
   return {
+    robots: { index: false, follow: false },
     title: `${name} · ${activeBrand.name}`,
     description: d.title || d.tagline || undefined,
   };
 }
 
-export default async function PublicCardPage({ params }: { params: { slug: string } }) {
-  const card = await getCardBySlug(params.slug);
+export default async function PublicCardPage({ params }: { params: Promise<{ slug: string }> }) {
+  const card = await getCardBySlug((await params).slug);
   if (!card) notFound();
 
-  await incrementViews(params.slug);
+  await incrementViews((await params).slug);
 
   const vcard = buildVcard(card.data);
-  const qr = await qrDataUrl(vcard, { width: 512 });
+  const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/c/${(await params).slug}`;
+  const qr = await qrDataUrl(publicUrl, { width: 512 }).catch(() => "");
 
   return (
     <>
@@ -44,7 +46,7 @@ export default async function PublicCardPage({ params }: { params: { slug: strin
           style={{ background: "var(--surface)", borderColor: "var(--line)" }}
         >
           <div className="cs-print">
-            <CardPreview data={card.data} qrUrl={qr} brand={activeBrand} />
+            <CardPreview data={card.data} qrUrl={qr} brand={activeBrand} qrLabel="Scan to view my profile" />
           </div>
         </div>
 
@@ -56,6 +58,8 @@ export default async function PublicCardPage({ params }: { params: { slug: strin
           lastName={card.data.lastName}
           qrAccent={activeBrand.colors.primary}
         />
+
+        {!qr && <p role="alert" className="cs-error">The QR could not be generated. You can still download the contact file above.</p>}
 
         <Link
           href="/"

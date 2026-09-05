@@ -38,6 +38,12 @@ export interface CardRecord {
   data: CardData;
   created_at: string;
   view_count: number;
+  owner_id: string | null;
+  published: boolean;
+  published_data: CardData | null;
+  deleted_at: string | null;
+  revision: number;
+  updated_at: string;
 }
 
 export const emptyCard = (): CardData => ({
@@ -88,7 +94,16 @@ export interface GroupRecord {
   data: GroupData;
   created_at: string;
   view_count: number;
+  owner_id: string | null;
+  published: boolean;
+  published_data: GroupData | null;
+  deleted_at: string | null;
+  revision: number;
+  updated_at: string;
 }
+
+export type RecordKind = "cards" | "groups";
+export type StudioRecord = CardRecord | GroupRecord;
 
 export const emptyGroup = (): GroupData => ({
   name: "",

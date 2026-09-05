@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { downloadBlob } from "@/lib/download";
 import { saveCardAsPng } from "@/lib/captureCard";
 import { downloadQrCard } from "@/lib/downloadQrCard";
@@ -12,6 +12,7 @@ export default function CardActions({
   vcard,
   qrUrl,
   fileBase,
+  disabled = false,
   firstName,
   lastName,
   qrAccent,
@@ -19,6 +20,7 @@ export default function CardActions({
   vcard: string;
   qrUrl: string;
   fileBase: string;
+  disabled?: boolean;
   firstName: string;
   lastName: string;
   qrAccent: string;
@@ -26,10 +28,12 @@ export default function CardActions({
   const [msg, setMsg] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
   function toast(t: string) {
     setMsg(t);
-    window.clearTimeout((toast as unknown as { _t?: number })._t);
-    (toast as unknown as { _t?: number })._t = window.setTimeout(() => setMsg(""), 1900);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setMsg(""), 3000);
   }
 
   function saveVcf() {
@@ -80,6 +84,7 @@ export default function CardActions({
         <button
           className={btn + " text-white"}
           style={{ background: "var(--brand-primary)", borderColor: "var(--brand-primary)" }}
+          disabled={disabled}
           onClick={saveVcf}
         >
           Add to contacts
@@ -88,13 +93,14 @@ export default function CardActions({
           className={btn}
           style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
           onClick={saveQr}
-          disabled={saving}
+          disabled={disabled || saving || !qrUrl}
         >
-          {saving ? "Savingâ€¦" : "Save QR image"}
+          {saving ? "Saving…" : "Save QR image"}
         </button>
         <button
           className={btn}
           style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
+          disabled={disabled}
           onClick={copyVcard}
         >
           Copy vCard
@@ -103,7 +109,7 @@ export default function CardActions({
           className={btn + " disabled:opacity-60"}
           style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
           onClick={saveDigitalCard}
-          disabled={saving}
+          disabled={disabled || saving || !qrUrl}
         >
           {saving ? "Saving…" : "Save Digital Card"}
         </button>

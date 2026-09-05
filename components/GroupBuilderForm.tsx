@@ -16,14 +16,15 @@ export default function GroupBuilderForm({
   setData,
 }: {
   data: GroupData;
-  setData: (d: GroupData) => void;
+  setData: React.Dispatch<React.SetStateAction<GroupData>>;
 }) {
   const [fileName, setFileName] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
-  const patch = (p: Partial<GroupData>) => setData({ ...data, ...p });
+  const patch = (p: Partial<GroupData>) => setData(current => ({ ...current, ...p }));
 
   function handleFile(file: File | undefined) {
     if (!file) return;
+    if (file.size > 400_000) { setErrors(["CSV is too large. Use a file under 400 KB."]); return; }
     setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -32,6 +33,7 @@ export default function GroupBuilderForm({
       patch({ members });
       setErrors(errors);
     };
+    reader.onerror = () => setErrors(["Could not read this file. Please select it again."]);
     reader.readAsText(file);
   }
 
@@ -45,21 +47,21 @@ export default function GroupBuilderForm({
     <form className="flex flex-col gap-4" autoComplete="off" onSubmit={(e) => e.preventDefault()}>
       <Section n={1} title="Group details">
         <div>
-          <label className={LABEL} style={labelStyle}>Group name</label>
-          <input className={INPUT} style={inputStyle} value={data.name}
+          <label htmlFor="group-name" className={LABEL} style={labelStyle}>Group name</label>
+          <input className={INPUT} style={inputStyle} id="group-name" value={data.name}
             onChange={(e) => patch({ name: e.target.value })} placeholder="Acme Inc. Team" />
         </div>
         <div>
-          <label className={LABEL} style={labelStyle}>Organization</label>
-          <input className={INPUT} style={inputStyle} value={data.organization}
+          <label htmlFor="group-organization" className={LABEL} style={labelStyle}>Organization</label>
+          <input className={INPUT} style={inputStyle} id="group-organization" value={data.organization}
             onChange={(e) => patch({ organization: e.target.value })} placeholder="Acme Inc." />
           <span className="text-[11.5px]" style={{ color: "var(--faint)" }}>
             Used for any person in the CSV that doesn&apos;t have their own organization column.
           </span>
         </div>
         <div>
-          <label className={LABEL} style={labelStyle}>Tagline</label>
-          <input className={INPUT} style={inputStyle} value={data.tagline}
+          <label htmlFor="group-tagline" className={LABEL} style={labelStyle}>Tagline</label>
+          <input className={INPUT} style={inputStyle} id="group-tagline" value={data.tagline}
             onChange={(e) => patch({ tagline: e.target.value })} placeholder="Say hello to the whole team." />
         </div>
       </Section>
@@ -74,7 +76,7 @@ export default function GroupBuilderForm({
             <input
               type="file"
               accept=".csv,text/csv"
-              hidden
+              className="sr-only"
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
           </label>

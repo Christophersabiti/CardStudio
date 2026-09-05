@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { downloadBlob, dataUrlToBlob } from "@/lib/download";
 import { saveCardAsPng } from "@/lib/captureCard";
 
@@ -11,20 +11,24 @@ export default function GroupActions({
   vcard,
   qrUrl,
   fileBase,
+  disabled = false,
   memberCount,
 }: {
   vcard: string;
   qrUrl: string;
   fileBase: string;
+  disabled?: boolean;
   memberCount: number;
 }) {
   const [msg, setMsg] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
   function toast(t: string) {
     setMsg(t);
-    window.clearTimeout((toast as unknown as { _t?: number })._t);
-    (toast as unknown as { _t?: number })._t = window.setTimeout(() => setMsg(""), 1900);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setMsg(""), 3000);
   }
 
   function saveVcf() {
@@ -63,7 +67,7 @@ export default function GroupActions({
           className={btn + " text-white disabled:opacity-60"}
           style={{ background: "var(--brand-primary)", borderColor: "var(--brand-primary)" }}
           onClick={saveVcf}
-          disabled={memberCount === 0}
+          disabled={disabled || memberCount === 0}
         >
           Add all to contacts
         </button>
@@ -71,6 +75,7 @@ export default function GroupActions({
           <button
             className={btn}
             style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
+            disabled={disabled || !qrUrl}
             onClick={saveQr}
           >
             Save QR image
@@ -80,7 +85,7 @@ export default function GroupActions({
           className={btn + " disabled:opacity-60"}
           style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
           onClick={copyVcard}
-          disabled={memberCount === 0}
+          disabled={disabled || memberCount === 0}
         >
           Copy vCard
         </button>
@@ -88,7 +93,7 @@ export default function GroupActions({
           className={btn + " disabled:opacity-60"}
           style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
           onClick={saveDigitalCard}
-          disabled={saving}
+          disabled={disabled || saving || !qrUrl}
         >
           {saving ? "Saving…" : "Save Digital Card"}
         </button>
