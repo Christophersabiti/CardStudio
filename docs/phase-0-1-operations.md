@@ -119,3 +119,22 @@ resized and re-encoded without preserving source metadata.
 - ESLint 9 is pinned because the current Next.js React lint plugin failed with
   ESLint 10. The dependency audit is clean, but revisit the toolchain when the
   upstream plugin supports ESLint 10.
+
+## Password access and administrator role
+
+Password sign-in is available alongside email links. It uses a server endpoint
+with origin validation and separate durable IP/account limits. Passwords are
+stored by Supabase Auth and never embedded in the app or repository.
+
+The administrator account is provisioned through the Supabase Admin API with
+`app_metadata.card_studio_role = "admin"`. `/admin` verifies the current user
+through `auth.getUser()` before checking this trusted role. User-editable
+metadata cannot grant access. The initial admin area shows aggregate active
+card/group counts; card editing remains owner-scoped.
+
+Verification: 11 unit tests and 16 password integration checks passed, including
+invalid credentials, session cookies, safe redirects, anonymous denial, and
+rejection of a forged role in user metadata. Run the opt-in live suite with
+`CARD_STUDIO_TEST_ORIGIN=http://localhost:3001 node tests/password-integration.mjs`.
+It creates and removes synthetic accounts. Password login does not rely on SMTP;
+email-link delivery still requires the operational configuration above.
