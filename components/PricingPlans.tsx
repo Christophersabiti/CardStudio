@@ -130,6 +130,7 @@ export default function PricingPlans({
                 </li>
                 <li>Portrait and landscape layouts</li>
                 <li>Private drafts and controlled publishing</li>
+                {meta?.features.map((feature,i)=><li key={i}>{feature}</li>)}
               </ul>
               {p.code === "free" && (
                 <Link className="mk-button" href="/onboarding?plan=free">

@@ -12,7 +12,7 @@ export default async function SignUpPage({searchParams}:{searchParams:Promise<{p
   if(!plan)redirect("/pricing");
   const destination="/onboarding?plan="+encodeURIComponent(plan);
   return <><Header brand={activeBrand}/><main className="px-5 pb-12 flex justify-center">
-    {isClerkConfigured() ? <SignUp routing="path" path="/sign-up" signInUrl="/sign-in"
+    {isClerkConfigured() ? <SignUp routing="path" path="/sign-up" signInUrl={`/sign-in?next=${encodeURIComponent(destination)}`}
       forceRedirectUrl={destination}/> : <AuthSetupNotice/>}
   </main></>;
 }

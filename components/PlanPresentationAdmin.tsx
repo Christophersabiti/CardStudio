@@ -84,7 +84,7 @@ export default function PlanPresentationAdmin({
                     display_order: Number(f.get("display_order")),
                     recommended: f.has("recommended"),
                     upgrade_codes: f.getAll("upgrade_codes"),
-                    features: [],
+                    features: String(f.get("features")||"").split("\n").map(v=>v.trim()).filter(Boolean),
                   },
                 });
               }}
@@ -129,7 +129,8 @@ export default function PlanPresentationAdmin({
                 />{" "}
                 Recommended plan
               </label>
-              <fieldset>
+              <label>Included feature notes (one per line)<textarea className="cs-input" name="features" maxLength={1800} defaultValue={m?.features.join("\n")||""}/></label>
+                <fieldset>
                 <legend>Allowed upgrade destinations</legend>
                 {["basic", "premium"]
                   .filter((c) => c !== p.code)
