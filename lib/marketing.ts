@@ -17,7 +17,7 @@ export const navigation = {
     ["QR sharing", "One scan. A better first impression.", "qr-sharing"],
     ["Group contacts", "A whole team in one shared link.", "group-contacts"],
     ["Event lead capture", "Explore our product roadmap.", "lead-capture"],
-    ["Email signatures", "See what’s planned next.", "email-signatures"],
+    ["Email signatures", "Your brand, in every inbox.", "email-signatures"],
   ],
   Resources: [
     ["Getting started", "From a blank canvas to your first card.", "guides"],
@@ -106,15 +106,9 @@ export const featureCopy: Record<
     planned: true,
   },
   "email-signatures": {
-    title: "A better sign-off is on the roadmap.",
-    intro:
-      "Dedicated email-signature generation is planned. For now, you can add your published Card Studio link to your email signature manually.",
-    points: [
-      "Publish your card.",
-      "Copy its profile link.",
-      "Add the link using your email app’s signature settings.",
-    ],
-    planned: true,
+    title: "Make every email feel like you.",
+    intro: "Create a signature, customize its design, and install it in your email app.",
+    points: ["Add your contact details.", "Choose your layout, font and brand color.", "Copy and install with a guide for your email app."],
   },
   guides: {
     title: "Meet your first digital card.",

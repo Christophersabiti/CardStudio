@@ -1,3 +1,4 @@
+import EmailSignature from "@/components/marketing/EmailSignature";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Shell from "@/components/marketing/Shell";
@@ -11,6 +12,7 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  if (slug === "email-signatures") return <Shell><EmailSignature /></Shell>;
   const page = featureCopy[slug];
   if (!page) notFound();
   return (
