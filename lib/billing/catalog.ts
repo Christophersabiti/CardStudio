@@ -29,17 +29,19 @@ export async function catalog(all = false) {
     .select("*")
     .order("code")
     .order("version", { ascending: false });
-  const [p, v, s] = await Promise.all([
+  const [p, v, s, meta] = await Promise.all([
     all ? planQuery : planQuery.eq("enabled", true),
     c.from("plan_prices").select("*"),
     c.from("commercial_settings").select("*").single(),
+    c.from("plan_presentation").select("*"),
   ]);
-  if (p.error || v.error || s.error)
+  if (p.error || v.error || s.error || meta.error)
     throw Error("Billing configuration unavailable");
   return {
     plans: p.data as Plan[],
     prices: v.data as Price[],
     settings: s.data,
+    presentation: meta.data,
   };
 }
 export function money(

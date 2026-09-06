@@ -32,12 +32,14 @@ export default function CardPreview({
   qrLabel?: string;
 }) {
   const name = `${data.firstName || ""} ${data.lastName || ""}`.trim();
-  const phones = data.phones.filter((p) => p.value).slice(0, 3);
-  const email = data.emails.find((e) => e);
-  const website = data.websites.find((w) => w);
+  const phones = data.phones.filter((p) => p.value);
+  const emails = data.emails.filter(Boolean);
+  const websites = data.websites.filter(Boolean);
 
   return (
-    <div className="cs-card">
+    <div
+      className={`cs-card ${data.orientation === "portrait" ? "cs-card-portrait" : "cs-card-landscape"}`}
+    >
       <div className="cs-main">
         <div className="cs-top">
           <div className="cs-photo">
@@ -51,33 +53,43 @@ export default function CardPreview({
           <div style={{ minWidth: 0 }}>
             <div className="cs-name">{name || "Your Name"}</div>
             <div className="cs-title">{data.title || "Your designation"}</div>
-            {data.organization ? <div className="cs-org">{data.organization}</div> : null}
+            {data.organization ? (
+              <div className="cs-org">{data.organization}</div>
+            ) : null}
           </div>
         </div>
 
         <div className="cs-contact">
           {phones.map((p, i) => (
             <div className="cs-line" key={`p${i}`}>
-              <span className="cs-ic"><PhoneIcon /></span>
+              <span className="cs-ic">
+                <PhoneIcon />
+              </span>
               <span>{p.value}</span>
             </div>
           ))}
-          {email ? (
-            <div className="cs-line">
-              <span className="cs-ic"><MailIcon /></span>
+          {emails.map((email, i) => (
+            <div className="cs-line" key={`email${i}`}>
+              <span className="cs-ic">
+                <MailIcon />
+              </span>
               <span>{email}</span>
             </div>
-          ) : null}
-          {website ? (
-            <div className="cs-line">
-              <span className="cs-ic"><WebIcon /></span>
+          ))}
+          {websites.map((website, i) => (
+            <div className="cs-line" key={`website${i}`}>
+              <span className="cs-ic">
+                <WebIcon />
+              </span>
               <span>{stripUrl(website)}</span>
             </div>
-          ) : null}
+          ))}
         </div>
 
         <div className="cs-socials">
-          {SOCIALS.filter((s) => data.socials[s.key] && safeWebUrl(data.socials[s.key])).map((s) => (
+          {SOCIALS.filter(
+            (s) => data.socials[s.key] && safeWebUrl(data.socials[s.key]),
+          ).map((s) => (
             <a
               key={s.key}
               className="cs-badge"
@@ -99,14 +111,22 @@ export default function CardPreview({
         <div className="cs-personal">
           {data.location ? (
             <div className="pp">
-              <span style={{ opacity: 0.85, display: "inline-flex", width: 12 }}><PinIcon /></span>
+              <span
+                style={{ opacity: 0.85, display: "inline-flex", width: 12 }}
+              >
+                <PinIcon />
+              </span>
               <span>{data.location}</span>
             </div>
           ) : null}
           {data.role ? (
-            <div className="pp"><b>{data.role}</b></div>
+            <div className="pp">
+              <b>{data.role}</b>
+            </div>
           ) : null}
-          {data.tagline ? <div className="cs-tagline">{data.tagline}</div> : null}
+          {data.tagline ? (
+            <div className="cs-tagline">{data.tagline}</div>
+          ) : null}
         </div>
 
         <div className="cs-qr-chip">
@@ -124,7 +144,10 @@ export default function CardPreview({
         {data.logo || brand.logo ? (
           <div className="cs-logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={data.logo || brand.logo} alt={data.logo ? "Logo" : brand.name} />
+            <img
+              src={data.logo || brand.logo}
+              alt={data.logo ? "Logo" : brand.name}
+            />
           </div>
         ) : (
           <div className="cs-logo-text">{brand.name}</div>

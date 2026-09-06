@@ -1,3 +1,4 @@
+import CardFrame from "@/components/CardFrame";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -40,14 +41,14 @@ export default async function PublicCardPage({ params }: { params: Promise<{ slu
   return (
     <>
       <Header brand={activeBrand} />
-      <main className="max-w-[560px] mx-auto px-5 pb-16 flex flex-col gap-4 items-center">
+      <main data-card-surface className="max-w-[560px] mx-auto px-5 pb-16 flex flex-col gap-4 items-center">
         <div
           className="w-full rounded-2xl border p-6 grid place-items-center"
           style={{ background: "var(--surface)", borderColor: "var(--line)" }}
         >
-          <div className="cs-print">
+          <CardFrame>
             <CardPreview data={card.data} qrUrl={qr} brand={activeBrand} qrLabel="Scan to view my profile" />
-          </div>
+          </CardFrame>
         </div>
 
         <CardActions

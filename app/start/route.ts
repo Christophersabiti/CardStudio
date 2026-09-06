@@ -1,0 +1,2 @@
+import {NextResponse} from 'next/server';
+export async function GET(req:Request){const value=new URL(req.url).searchParams.get('plan')||'choose';const plan=/^(free|choose|[0-9a-f-]{36})$/.test(value)?value:'choose';const r=NextResponse.redirect(new URL('/sign-up?plan='+encodeURIComponent(plan),req.url));r.cookies.set('card_studio_plan_intent',plan,{httpOnly:true,secure:new URL(req.url).protocol==='https:',sameSite:'lax',maxAge:3600,path:'/'});return r;}

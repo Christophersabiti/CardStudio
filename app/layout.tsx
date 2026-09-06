@@ -1,4 +1,5 @@
 import "./globals.css";
+import SessionGuard from "@/components/SessionGuard";
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { activeBrand, brandCssVars } from "@/lib/brand";
@@ -24,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body style={brandCssVars(activeBrand) as CSSProperties}>
         {isClerkConfigured() ? <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up"
           signInFallbackRedirectUrl="/dashboard" signUpFallbackRedirectUrl="/dashboard"
-          afterSignOutUrl="/sign-in">{children}</ClerkProvider> : children}
+          afterSignOutUrl="/sign-in"><SessionGuard>{children}</SessionGuard></ClerkProvider> : children}
       </body>
     </html>
   );

@@ -12,6 +12,7 @@ export interface SessionUser {
   email: string;
   appRole: "member" | "admin" | "superadmin";
   status: "active";
+  onboardingComplete: boolean;
 }
 
 /** Per-request memoization only. Never cache identity across users/requests. */
@@ -29,6 +30,9 @@ export const currentUser = cache(async (): Promise<SessionUser | null> => {
   if (session.status !== "active" || session.userId !== identity.userId || user.banned || user.locked) {
     throw new HttpError(403, "This account or session is unavailable. Please sign in again.");
   }
+  const idle = await createAdminClient().rpc("check_app_session", {sid:identity.sessionId, subject:identity.userId, touch:false});
+  if(idle.error) throw new Error("Session verification unavailable.");
+  if(!idle.data?.active) { await clerk.sessions.revokeSession(identity.sessionId).catch(()=>{}); return null; }
   const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId && e.verification?.status === "verified");
   if (!email) throw new HttpError(403, "Verify your email address before saving cards.");
   const { data: account, error } = await createAdminClient().rpc("ensure_clerk_user", {
@@ -40,5 +44,5 @@ export const currentUser = cache(async (): Promise<SessionUser | null> => {
   if (account.status !== "active" || account.clerk_disabled || account.clerk_user_id !== identity.userId) {
     throw new HttpError(403, "This CardStudio account is unavailable. Contact support.");
   }
-  return { id: account.id, clerkId: identity.userId, email: email.emailAddress, appRole: account.app_role, status: "active" };
+  return { id: account.id, clerkId: identity.userId, email: email.emailAddress, appRole: account.app_role, status: "active", onboardingComplete: account.onboarding_complete };
 });

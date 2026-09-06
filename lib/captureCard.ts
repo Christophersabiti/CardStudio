@@ -9,8 +9,8 @@ import { downloadBlob, dataUrlToBlob } from "./download";
  * doesn't understand — html-to-image paints via an SVG foreignObject, so it
  * gets whatever the real browser renders.
  */
-export async function saveCardAsPng(selector: string, filename: string): Promise<void> {
-  const node = document.querySelector<HTMLElement>(selector);
+export async function saveCardAsPng(node: HTMLElement | null, filename: string): Promise<void> {
+  await document.fonts.ready;
   if (!node) throw new Error("Card preview not found");
   const dataUrl = await toPng(node, { pixelRatio: 2, cacheBust: true });
   downloadBlob(filename, dataUrlToBlob(dataUrl));

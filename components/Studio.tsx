@@ -1,4 +1,5 @@
 "use client";
+import CardFrame from "@/components/CardFrame";
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -46,6 +47,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
   const requestId = useRef<string>("");
   const completedNewDraft = useRef(false);
   const key = `card_studio_v2:${userId || "guest"}:${kind}:${initial?.slug || "new"}`;
+  const recoveryKey = `${kind}:${initial?.slug || "new"}`;
   const guestKey = `card_studio_v2:guest:${kind}:new`;
   const legacyKey = kind === "cards" ? "card_studio_draft_v1" : "card_studio_group_draft_v1";
   const snapshot = useRef<{data: CardData|GroupData;revision:number|undefined;requestId?:string}>({data,revision:initial?.revision});
@@ -53,31 +55,32 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
   // Hydrate browser-only draft storage after SSR; never overwrite it with the server default.
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(()=>{
+    let active=true;
     setOrigin(window.location.origin);
     requestId.current = crypto.randomUUID();
-    try {
-      let raw = localStorage.getItem(key) || (!initial && userId ? localStorage.getItem(guestKey) : null);
-      if (!initial && raw && isCompletedNewDraft(JSON.parse(raw))) {
-        localStorage.removeItem(key);
-        raw = null;
-      }
-      if (!raw && !initial) { const legacy = localStorage.getItem(legacyKey); if (legacy) raw = JSON.stringify({data:JSON.parse(legacy)}); }
-      if(raw) {
-        const draft = JSON.parse(raw);
-        if (!initial && typeof draft.requestId === "string" && /^[0-9a-f-]{36}$/.test(draft.requestId)) requestId.current = draft.requestId;
-        const parsed = (kind==="cards"?cardDraftSchema:groupDraftSchema).safeParse(draft.data);
-        if(parsed.success && (!initial || draft.revision===initial.revision)) {
-          setData(parsed.data as CardData|GroupData);
-          snapshot.current.data=parsed.data as CardData|GroupData;
-          if(initial && !sameContent(parsed.data,initial.data))setDraftNotice("Restored your unsaved changes from this browser.");
-        } else if(initial && draft.revision!==initial.revision) {
-          setDraftNotice("A newer version was saved elsewhere. Loaded the latest cloud draft.");
+    async function hydrate(){
+      try {
+        let raw:string|null=null;
+        if(userId){
+          const r=await fetch(`/api/recovery?key=${encodeURIComponent(recoveryKey)}`,{cache:"no-store"});
+          if(!r.ok)throw Error("Private recovery unavailable.");
+          const b=await r.json();raw=b.snapshot?JSON.stringify(b.snapshot):localStorage.getItem(key);
+          if(!raw&&!initial&&localStorage.getItem(guestKey)&&window.confirm("Continue with the draft you created before signing in?"))raw=localStorage.getItem(guestKey);
+        }else raw=localStorage.getItem(key);
+        if(!active)return;
+        if(raw){const draft=JSON.parse(raw);const parsed=(kind==="cards"?cardDraftSchema:groupDraftSchema).safeParse(draft.data);
+          if(parsed.success&&(!initial||draft.revision===initial.revision)&&(!!initial||!isCompletedNewDraft(draft))){
+            setData(parsed.data as CardData|GroupData);snapshot.current.data=parsed.data as CardData|GroupData;
+            if(draft.requestId&&/^[0-9a-f-]{36}$/.test(draft.requestId))requestId.current=draft.requestId;
+            setDraftNotice("Recovered your unfinished draft. Nothing has been published.");
+          }
         }
-      }
-    } catch {setDraftNotice("Browser draft storage is unavailable. Save your draft online before leaving.");}
-    setReady(true);
-    return ()=>{ if(completedNewDraft.current)return; try {localStorage.setItem(key,JSON.stringify(snapshot.current));}catch{/* Notice is surfaced by autosave. */} };
-  },[key,guestKey,legacyKey,initial,kind,userId]);
+      }catch{if(active)setDraftNotice("Draft recovery is unavailable. Save online before leaving.");}
+      if(active)setReady(true);
+    }
+    void hydrate();
+    return()=>{active=false;};
+  },[key,guestKey,initial,kind,userId,recoveryKey]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(()=>{
@@ -85,11 +88,12 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
     snapshot.current={data,revision:record?.revision,requestId:requestId.current};
     const timer=setTimeout(()=>{
       if(completedNewDraft.current)return;
-      try {localStorage.setItem(key,JSON.stringify(snapshot.current));setLocalVersion(JSON.stringify(snapshot.current.data));}
-      catch {setDraftNotice("This browser could not save your draft. Save online before leaving.");}
+      const current=JSON.stringify(snapshot.current);
+      if(userId){void fetch("/api/recovery",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key:recoveryKey,snapshot:JSON.parse(current)})}).then(r=>{if(!r.ok)throw Error();setLocalVersion(JSON.stringify(JSON.parse(current).data));}).catch(()=>setDraftNotice("Private recovery failed. Save online before leaving; unsaved edits may be lost at logout."));}
+      else try {localStorage.setItem(key,current);setLocalVersion(JSON.stringify(snapshot.current.data));}catch{setDraftNotice("This browser could not save your draft.");}
     },300);
     return ()=>clearTimeout(timer);
-  },[data,record?.revision,key,ready]);
+  },[data,record?.revision,key,ready,userId,recoveryKey]);
 
   const dirty = !record || !sameContent(data,record.data);
   const matchesPublished = !!record?.published && sameContent(data,record.published_data);
@@ -130,13 +134,15 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
       snapshot.current={data:action==="unpublish"?data:next.data,revision:next.revision,requestId:requestId.current};
       try {
         const savedKey = `card_studio_v2:${userId}:${kind}:${next.slug}`;
-        localStorage.setItem(savedKey,JSON.stringify(snapshot.current));
+        localStorage.removeItem(savedKey);
+        void fetch(`/api/recovery?key=${encodeURIComponent(recoveryKey)}`,{method:"DELETE"});
         if(!initial)localStorage.removeItem(key);
         if(!initial && userId){localStorage.removeItem(guestKey);localStorage.removeItem(legacyKey);}
       } catch { setDraftNotice("Saved online. Browser draft storage is unavailable."); }
       if(action==="publish")setQrMode("dynamic");
       setConsent(false);
       setNotice(action==="publish"?"Published. Your profile link stays the same when you update it.":action==="unpublish"?"Unpublished. The public link no longer shows this card.":"Draft saved privately. Your published card has not changed.");
+      window.dispatchEvent(new Event("card-studio-usage"));
       if(!record)router.replace(`/edit/${kind}/${next.slug}`);
 
     } catch(e) {setError(e instanceof Error?e.message:"Could not save. Please try again.");}
@@ -149,15 +155,16 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
       {userId && <Link href="/dashboard" className="cs-button">My cards</Link>}
     </div>
     {draftNotice && <p className="cs-panel text-sm mb-4" role="status">{draftNotice}</p>}
-    <div className="cs-studio-grid">
+    <div className="cs-studio-grid" data-card-surface>
       <fieldset disabled={busy || !ready} className="cs-editor-col min-w-0 border-0 p-0 m-0">
         {kind==="cards"?<BuilderForm data={data as CardData} setData={update=>setData(current=>typeof update==="function"?update(current as CardData):update)}/>:<GroupBuilderForm data={data as GroupData} setData={update=>setData(current=>typeof update==="function"?update(current as GroupData):update)}/>}
       </fieldset>
       <div className="flex flex-col gap-4 lg:sticky lg:top-5 cs-stage-col">
         <div className="flex justify-between"><h2 className="font-bold">Live preview</h2><span className="text-xs cs-muted">Updates as you type</span></div>
-        <div className="cs-panel grid place-items-center"><div className="cs-print">
+        {kind==="cards"&&<div role="group" aria-label="Card orientation" className="flex gap-2">{(["landscape","portrait"] as const).map(o=><button key={o} className="cs-button" aria-pressed={((data as CardData).orientation||"landscape")===o} onClick={()=>setData(d=>({...d,orientation:o}))}>{o==="portrait"?"Portrait":"Landscape"}</button>)}</div>}
+        <div className="cs-panel grid place-items-center"><CardFrame>
           {kind==="cards"?<CardPreview data={data as CardData} qrUrl={qr} brand={brand} qrLabel={qrMode==="dynamic"?"Scan to view my profile":"Scan to save my contact"}/>:<GroupPreview data={data as GroupData} qrUrl={qr} brand={brand}/>}
-        </div></div>
+        </CardFrame></div>
         {kind==="cards" && <div className="cs-panel text-sm flex flex-col gap-2">
           <label htmlFor="qr-type" className="font-semibold">QR type</label>
           <select id="qr-type" className="cs-input" value={qrMode} onChange={e=>setQrMode(e.target.value as "dynamic"|"offline")}>
@@ -183,7 +190,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
           {publicUrl && matchesPublished && <div className="flex gap-2"><input aria-label="Public card link" readOnly className="cs-input min-w-0 flex-1" value={publicUrl}/><button className="cs-button" onClick={async()=>{try{await navigator.clipboard.writeText(publicUrl);setNotice("Link copied.");}catch{setError("Copy isn't available. Select and copy the link above.");}}}>Copy link</button></div>}
           {publicUrl && <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="text-sm underline">Open last published version ↗</a>}
           {notice && <p role="status" className="text-sm">{notice}</p>}
-          {error && <p role="alert" className="cs-error">{error}</p>}
+          {error && <p role="alert" className="cs-error">{error}{error.includes("plan limit")&&<Link href="/pricing" className="cs-button ml-3">Upgrade plan</Link>}</p>}
           {kind==="groups" && <p className="text-xs cs-muted">Contact-import steps vary by phone. Downloading a file does not confirm that every contact was added.</p>}
         </div>
       </div>

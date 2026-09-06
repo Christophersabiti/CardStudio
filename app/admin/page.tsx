@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import Header from "@/components/Header";
 import ResourceAdmin from "@/components/ResourceAdmin";
+import PlanPresentationAdmin from "@/components/PlanPresentationAdmin";
 import CommercialAdmin from "@/components/CommercialAdmin";
 import { activeBrand } from "@/lib/brand";
 import { currentUser } from "@/lib/auth/session";
@@ -121,6 +122,7 @@ export default async function Admin({
             : "setup incomplete"}{" "}
           · Checkout: {cat.settings.checkout_enabled ? "enabled" : "disabled"}
         </p>
+        <PlanPresentationAdmin plans={cat.plans} items={cat.presentation} threshold={cat.settings.upgrade_threshold}/>
         <CommercialAdmin
           settings={cat.settings}
           plans={cat.plans}

@@ -3,7 +3,8 @@ import { before, after, test } from "node:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
-const db = new PGlite({ extensions: { pgcrypto } });
+import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
+const db = new PGlite({ extensions: { pgcrypto, pg_trgm } });
 let owner: string, admin: string;
 before(async () => {
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
@@ -250,4 +251,41 @@ test('storage, disabled accounts and moderation respect database enforcement', a
  await db.query("select admin_resource_update($1,'cards',$2,'unpublish','Test moderation')",[admin,card]);
  assert.equal((await db.query<{published:boolean}>("select published from cards where id=$1",[card])).rows[0].published,false);
  assert.equal((await db.query("select * from admin_audit where target_id=$1",[card])).rows.length,1);
+});
+
+test('idle deadlines are server-controlled, do not extend on reads and cannot be revived', async()=>{
+ const read=async(touch=false)=>(await db.query<{v:{active:boolean;remaining:number}}>("select check_app_session('sess_test','user_idle',$1) v",[touch])).rows[0].v;
+ assert.equal((await read()).active,true);
+ await db.exec("update app_sessions set last_activity=clock_timestamp()-interval '14 minutes 59 seconds' where session_id='sess_test'");
+ assert.equal((await read()).active,true);
+ assert.ok((await read()).remaining<2);
+ assert.ok((await read(true)).remaining>899);
+ await db.exec("update app_sessions set last_activity=clock_timestamp()-interval '15 minutes 1 second' where session_id='sess_test'");
+ assert.equal((await read(true)).active,false);
+ assert.equal((await read(true)).active,false);
+ assert.equal((await db.query<{v:{active:boolean}}>("select check_app_session('sess_test','other',true) v")).rows[0].v.active,false);
+ await assert.rejects(db.exec("set role authenticated; select check_app_session('forged','user_idle',true)"));await db.exec('reset role');
+});
+
+test('combined search covers later pages, normalizes accents and phones, and isolates owners and Trash',async()=>{
+ for(let i=0;i<26;i++)await db.query("insert into cards(id,slug,owner_id,data) values(gen_random_uuid(),$1,$2,$3)",['search_'+String(i).padStart(3,'0'),admin,JSON.stringify({firstName:'José',lastName:'Searchable '+i,phones:[{value:'+256 770 123 456'}],organization:i===0?'Unique Needle':'Studio'})]);
+ const search=async(q:string,ownerId=admin,trash=false,page=1)=>(await db.query<{v:{total:number;items:{id:string}[]}}>('select search_owned_cards($1,$2,$3,$4) v',[ownerId,q,trash,page])).rows[0].v;
+ assert.equal((await search('Jose')).total,26);assert.equal((await search('Jose')).items.length,24);
+ assert.equal((await search('Jose',admin,false,2)).items.length,2);
+ assert.equal((await search('unique needle')).total,1);assert.equal((await search('256770123456')).total,26);
+ assert.equal((await search('Unique Needle',owner)).total,0);
+ await db.exec("update cards set deleted_at=now() where slug='search_000'");
+ assert.equal((await search('unique needle')).total,0);assert.equal((await search('unique needle',admin,true)).total,1);
+ assert.equal((await search("' OR 1=1 --")).total,0);
+ await assert.rejects(db.exec(`set role authenticated; select search_owned_cards('${admin}','',false,1)`));await db.exec('reset role');
+});
+
+test('new accounts require onboarding and private recovery is never client-readable',async()=>{
+ const fresh=(await db.query<{onboarding_complete:boolean}>("select * from ensure_clerk_user('user_NewOnboarding','New')")).rows[0];assert.equal(fresh.onboarding_complete,false);
+ for(const table of ['app_sessions','draft_recovery','plan_presentation']){
+ const row=(await db.query<{allowed:boolean}>("select has_table_privilege('authenticated',$1,'SELECT') allowed",[table])).rows[0];assert.equal(row.allowed,false);
+ }
+ await assert.rejects(db.query('select update_plan_presentation($1,null,$2)',[owner,JSON.stringify({upgrade_threshold:90})]));
+ await db.query('select update_plan_presentation($1,null,$2)',[admin,JSON.stringify({upgrade_threshold:85})]);
+ assert.equal((await db.query<{upgrade_threshold:number}>('select upgrade_threshold from commercial_settings')).rows[0].upgrade_threshold,85);
 });

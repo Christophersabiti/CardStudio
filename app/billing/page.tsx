@@ -1,3 +1,4 @@
+import UsageBanner from "@/components/UsageBanner";
 /* eslint-disable react-hooks/purity -- Request-time server rendering of expiry dates; no client render clock. */
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -43,6 +44,7 @@ export default async function Billing() {
             My cards
           </Link>
         </div>
+        <UsageBanner/>
         <section className="cs-panel my-6">
           <h2 className="text-xl">Current plan: {e.data.name}</h2>
           <p className="cs-muted mt-2">

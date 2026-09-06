@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useExportAccess, verifyExport } from "./SessionGuard";
 import { downloadBlob } from "@/lib/download";
 import { saveCardAsPng } from "@/lib/captureCard";
 import { downloadQrCard } from "@/lib/downloadQrCard";
@@ -25,6 +27,16 @@ export default function CardActions({
   lastName: string;
   qrAccent: string;
 }) {
+  const access = useExportAccess();
+  const container = useRef<HTMLDivElement>(null);
+  disabled = disabled || !access;
+  async function permitted() {
+    if (disabled || !(await verifyExport())) {
+      toast("Sign in to save or download.");
+      return false;
+    }
+    return true;
+  }
   const [msg, setMsg] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
@@ -36,11 +48,16 @@ export default function CardActions({
     timer.current = setTimeout(() => setMsg(""), 3000);
   }
 
-  function saveVcf() {
-    downloadBlob(`${fileBase}.vcf`, new Blob([vcard], { type: "text/vcard;charset=utf-8" }));
+  async function saveVcf() {
+    if (!(await permitted())) return;
+    downloadBlob(
+      `${fileBase}.vcf`,
+      new Blob([vcard], { type: "text/vcard;charset=utf-8" }),
+    );
     toast("Contact file downloaded");
   }
   async function saveQr() {
+    if (!(await permitted())) return;
     if (!qrUrl) return;
     setSaving(true);
     try {
@@ -59,6 +76,7 @@ export default function CardActions({
     }
   }
   async function copyVcard() {
+    if (!(await permitted())) return;
     try {
       await navigator.clipboard.writeText(vcard);
       toast("vCard copied");
@@ -67,9 +85,15 @@ export default function CardActions({
     }
   }
   async function saveDigitalCard() {
+    if (!(await permitted())) return;
     setSaving(true);
     try {
-      await saveCardAsPng(".cs-print", `${fileBase}_card.png`);
+      await saveCardAsPng(
+        container.current
+          ?.closest("[data-card-surface]")
+          ?.querySelector<HTMLElement>(".cs-print") || null,
+        `${fileBase}_card.png`,
+      );
       toast("Card image saved");
     } catch {
       toast("Could not save image");
@@ -79,11 +103,22 @@ export default function CardActions({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={container}>
+      {!access && (
+        <p className="text-sm cs-muted mb-3">
+          Sign in to save or download your card.{" "}
+          <Link className="underline" href="/sign-in">
+            Sign in
+          </Link>
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         <button
           className={btn + " text-white"}
-          style={{ background: "var(--brand-primary)", borderColor: "var(--brand-primary)" }}
+          style={{
+            background: "var(--brand-primary)",
+            borderColor: "var(--brand-primary)",
+          }}
           disabled={disabled}
           onClick={saveVcf}
         >
@@ -91,7 +126,11 @@ export default function CardActions({
         </button>
         <button
           className={btn}
-          style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
+          style={{
+            background: "var(--field)",
+            borderColor: "var(--field-line)",
+            color: "var(--ink)",
+          }}
           onClick={saveQr}
           disabled={disabled || saving || !qrUrl}
         >
@@ -99,7 +138,11 @@ export default function CardActions({
         </button>
         <button
           className={btn}
-          style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
+          style={{
+            background: "var(--field)",
+            borderColor: "var(--field-line)",
+            color: "var(--ink)",
+          }}
           disabled={disabled}
           onClick={copyVcard}
         >
@@ -107,7 +150,11 @@ export default function CardActions({
         </button>
         <button
           className={btn + " disabled:opacity-60"}
-          style={{ background: "var(--field)", borderColor: "var(--field-line)", color: "var(--ink)" }}
+          style={{
+            background: "var(--field)",
+            borderColor: "var(--field-line)",
+            color: "var(--ink)",
+          }}
           onClick={saveDigitalCard}
           disabled={disabled || saving || !qrUrl}
         >

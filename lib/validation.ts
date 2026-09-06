@@ -12,6 +12,7 @@ export const mediaPath = /^\/api\/media\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3
 const picture = z.string().max(550_000).refine(v => !v || mediaPath.test(v) || /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(v), "Choose a PNG, JPEG or WebP image.").default("");
 const socials = z.object(Object.fromEntries(["linkedin","twitter","facebook","instagram","youtube","tiktok","github","whatsapp"].map(k => [k, web.optional()]))).strict();
 export const cardSchema = z.object({
+  orientation: z.enum(["portrait","landscape"]).optional(),
   firstName: optionalText(100), lastName: optionalText(100), title: optionalText(160), organization: optionalText(160),
   phones: z.array(z.object({ type: z.enum(["CELL","WORK","HOME","WHATSAPP","OTHER"]), value: phone }).strict()).max(10).default([]),
   emails: z.array(email).max(10).default([]), websites: z.array(web).max(10).default([]), socials: socials.default({}),
@@ -38,5 +39,5 @@ export const createSchema = z.object({ id: z.uuid(), data: z.unknown(), publish:
 export const updateSchema = z.object({ action: z.enum(["save","publish","unpublish","delete","restore","duplicate"]), revision: z.number().int().nonnegative(), data: z.unknown().optional(), consent: z.boolean().default(false), id: z.uuid().optional() }).strict();
 export const slugSchema = z.string().regex(/^[A-Za-z0-9_-]{6,40}$/);
 export function safeNext(value: string | null | undefined): string {
-  return value && /^\/(?:studio(?:\?[^\\]*)?|billing|dashboard(?:\?[^\\]*)?|edit\/(?:cards|groups)\/[A-Za-z0-9_-]{6,40}|\?[^\\]*)$/.test(value) ? value : "/dashboard";
+  return value && /^\/(?:studio(?:\?[^\\]*)?|billing|onboarding(?:\?[^\\]*)?|dashboard(?:\?[^\\]*)?|edit\/(?:cards|groups)\/[A-Za-z0-9_-]{6,40}|\?[^\\]*)$/.test(value) ? value : "/dashboard";
 }

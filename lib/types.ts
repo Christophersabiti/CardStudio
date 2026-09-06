@@ -12,6 +12,7 @@ export type AccentKey = "primary" | "secondary" | "accent" | "ink";
  * (column `data`). Keep this in sync with the migration and the builder form.
  */
 export interface CardData {
+  orientation?: "portrait" | "landscape";
   firstName: string;
   lastName: string;
   title: string; // designation / job title
@@ -47,6 +48,7 @@ export interface CardRecord {
 }
 
 export const emptyCard = (): CardData => ({
+  orientation: "landscape",
   firstName: "",
   lastName: "",
   title: "",
