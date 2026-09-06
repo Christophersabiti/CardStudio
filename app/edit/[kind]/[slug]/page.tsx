@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Studio from "@/components/Studio";
 import { activeBrand } from "@/lib/brand";
-import { currentUser } from "@/lib/supabase/session";
+import { currentUser } from "@/lib/auth/session";
 import { ownedRecord } from "@/lib/records";
 export default async function EditPage({params}:{params:Promise<{kind:string;slug:string}>}) {
   const {kind,slug}=await params;

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import Header from "@/components/Header";
 import { activeBrand } from "@/lib/brand";
-import { currentUser } from "@/lib/supabase/session";
+import { currentUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import { isAdministrator } from "@/lib/roles";
 

@@ -1,18 +1,14 @@
 import "server-only";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { auth } from "@clerk/nextjs/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function createSessionClient() {
-  const jar = await cookies();
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      getAll: () => jar.getAll(),
-      setAll: values => { try { values.forEach(({name,value,options}) => jar.set(name,value,options)); } catch { /* Server component: proxy refreshes cookies. */ } },
-    },
+  const identity = await auth();
+  if (!identity.userId) throw new Error("Authenticated database session required.");
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!key || !process.env.NEXT_PUBLIC_SUPABASE_URL) throw new Error("Supabase public configuration is missing.");
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, key, {
+    accessToken: async () => identity.getToken(),
+    auth: { persistSession: false, autoRefreshToken: false },
   });
-}
-export async function currentUser() {
-  const client = await createSessionClient();
-  const {data: {user}} = await client.auth.getUser();
-  return user && !user.is_anonymous ? user : null;
 }

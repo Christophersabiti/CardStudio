@@ -1,29 +1,41 @@
-// Opt-in: uses only synthetic accounts/records and removes them in finally.
+// Opt-in Clerk development integration. Never run with production Clerk keys.
 // Run against the local production build with CARD_STUDIO_TEST_ORIGIN set.
 import assert from 'node:assert/strict';
 import { randomUUID, randomBytes, createHmac } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { createClient } from '@supabase/supabase-js';
-import { createServerClient } from '@supabase/ssr';
+
 import sharp from 'sharp';
 const require=createRequire(import.meta.url);require('@next/env').loadEnvConfig(process.cwd());
 const origin=process.env.CARD_STUDIO_TEST_ORIGIN;
 if(!origin || !['localhost','127.0.0.1'].includes(new URL(origin).hostname))throw new Error('Set CARD_STUDIO_TEST_ORIGIN to the local app.');
 const admin=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+if (!process.env.CLERK_SECRET_KEY?.startsWith('sk_test_')) throw new Error('Configure Clerk DEVELOPMENT keys in .env.local before running this suite.');
+const {error:ready}=await admin.from('users').select('clerk_user_id,app_role').limit(0);
+if(ready)throw new Error('Apply the Phase 1 and Phase 2 migrations to the confirmed test database first.');
 const created=[];const rateKeys=[];
+async function clerk(path,method='GET',body) {
+  const res=await fetch('https://api.clerk.com/v1'+path,{method,headers:{Authorization:'Bearer '+process.env.CLERK_SECRET_KEY,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+  if(!res.ok)throw new Error(`Clerk test request failed (${res.status})`);
+  return res.status===204?null:res.json();
+}
 let checks=0;
 function check(condition,message){assert.ok(condition,message);checks++;console.log(`PASS ${message}`);}
 async function identity() {
-  const email=`card-studio-test-${randomUUID()}@example.com`,password=randomBytes(32).toString('hex');
-  const {data,error}=await admin.auth.admin.createUser({email,password,email_confirm:true});if(error)throw error;
-  created.push(data.user.id);
-  const jar=new Map();
-  const client=createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,{cookies:{getAll:()=>[...jar].map(([name,value])=>({name,value})),setAll:values=>values.forEach(({name,value})=>jar.set(name,value))}});
-  const signed=await client.auth.signInWithPassword({email,password});if(signed.error)throw signed.error;
-  return {id:data.user.id,client,cookie:()=>[...jar].map(([k,v])=>`${k}=${v}`).join('; ')};
+  const email=`cardstudio-${randomUUID()}+clerk_test@example.com`;
+  const user=await clerk('/users','POST',{email_address:[email],password:randomBytes(32).toString('hex'),skip_password_checks:true});
+  const fixture={clerkId:user.id,id:null};created.push(fixture);
+  const session=await clerk('/sessions','POST',{user_id:user.id});
+  fixture.sessionId=session.id;
+  const token=async()=>(await clerk(`/sessions/${session.id}/tokens`,'POST')).jwt;
+  const account=await fetch(origin+'/api/account',{headers:{Authorization:'Bearer '+await token()}});
+  if(account.status!==200)throw new Error(`Account provisioning failed (${account.status}); check migrations and verified Clerk email.`);
+  fixture.id=(await account.json()).user.id;
+  const client=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY||process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,{accessToken:token,auth:{persistSession:false,autoRefreshToken:false}});
+  return {...fixture,client,token};
 }
 async function request(path,who,body,method=body?'POST':'GET') {
-  const response=await fetch(origin+path,{method,redirect:'manual',headers:{Origin:origin,...(who?{Cookie:who.cookie()}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});
+  const response=await fetch(origin+path,{method,redirect:'manual',headers:{Origin:origin,...(who?{Authorization:'Bearer '+await who.token()}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});
   const text=await response.text();let json;try{json=JSON.parse(text);}catch{}
   return {status:response.status,json,text,headers:response.headers};
 }
@@ -31,10 +43,10 @@ const base={firstName:'TestAmina',lastName:'Namusoke',title:'Original role',orga
 try {
   const a=await identity(),b=await identity();
   const denied=await request('/api/cards',null,{id:randomUUID(),data:base});check(denied.status===401,'anonymous cloud save rejected');
-  const csrf=await fetch(origin+'/api/cards',{method:'POST',headers:{Origin:'https://evil.example',Cookie:a.cookie(),'Content-Type':'application/json'},body:JSON.stringify({id:randomUUID(),data:base})});check(csrf.status===403,'cross-origin mutation rejected');
+  const csrf=await fetch(origin+'/api/cards',{method:'POST',headers:{Origin:'https://evil.example',Authorization:'Bearer '+await a.token(),'Content-Type':'application/json'},body:JSON.stringify({id:randomUUID(),data:base})});check(csrf.status===403,'cross-origin mutation rejected');
   const malformed=await request('/api/groups',a,{id:randomUUID(),data:{members:[]}});check(malformed.status===400,'missing group name returns validation error, not server error');
   const unsafe=await request('/api/cards',a,{id:randomUUID(),data:{...base,websites:['javascript:alert(1)']}});check(unsafe.status===400,'unsafe URL rejected');
-  const oversized=await fetch(origin+'/api/cards',{method:'POST',headers:{Origin:origin,Cookie:a.cookie(),'Content-Type':'application/json'},body:JSON.stringify({padding:'é'.repeat(700000)})});check(oversized.status===413,'oversized UTF-8 request rejected');
+  const oversized=await fetch(origin+'/api/cards',{method:'POST',headers:{Origin:origin,Authorization:'Bearer '+await a.token(),'Content-Type':'application/json'},body:JSON.stringify({padding:'é'.repeat(700000)})});check(oversized.status===413,'oversized UTF-8 request rejected');
   const id=randomUUID();let res=await request('/api/cards',a,{id,data:base});check(res.status===201,'owner creates private cloud draft');let card=res.json.record;
   const retry=await request('/api/cards',a,{id,data:base});check(retry.json.record.id===id,'retry uses the same record, not a duplicate');
   check((await request(`/c/${card.slug}`)).status===404,'private draft has no public page');
@@ -75,18 +87,21 @@ try {
   check(limits.every(r=>!r.error)&&limits.filter(r=>r.data===true).length===2,'distributed rate limit is atomic under concurrent requests');
   const forbidden=await b.client.rpc('consume_card_studio_limit',{bucket_key:bucket,max_requests:1000,window_seconds:60});check(!!forbidden.error,'browser cannot change its rate limit');
   const dash=await request('/dashboard',a);check(dash.status===200&&dash.text.includes('TestAmina'),'signed-in dashboard lists owned cards');
-  const signedout=await request('/auth/signout',a,{},'POST');check(signedout.status===303&&signedout.headers.getSetCookie().some(c=>/Max-Age=0/i.test(c)),'sign-out clears browser session cookies');
+  const signedout=await request('/auth/signout',a,{},'POST');check(signedout.status===303&&(await clerk(`/sessions/${a.sessionId}`)).status==='revoked','sign-out revokes the Clerk session');
   console.log(`Integration checks passed: ${checks}`);
 } finally {
   // Delete only records and assets belonging to synthetic accounts created above.
-  for(const owner of created) {
+  for(const fixture of created) {
+    const owner=fixture.id;
+    if(!owner){await clerk(`/users/${fixture.clerkId}`,'DELETE');continue;}
     for(const kind of ['cards','groups']){const {error}=await admin.from(kind).delete().eq('owner_id',owner);if(error)throw error;}
     const {data:assets,error}=await admin.from('card_studio_media').select('path').eq('owner_id',owner);if(error)throw error;
     if(assets.length){const removed=await admin.storage.from('card-studio-private').remove(assets.map(a=>a.path));if(removed.error)throw removed.error;}
     const removed=await admin.from('card_studio_media').delete().eq('owner_id',owner);if(removed.error)throw removed.error;
     for(const scope of ['record-write','upload'])rateKeys.push(createHmac('sha256',process.env.SUPABASE_SERVICE_ROLE_KEY).update(`${scope}:${owner}`).digest('hex'));
-    const result=await admin.auth.admin.deleteUser(owner);if(result.error)throw result.error;
+    await clerk(`/users/${fixture.clerkId}`,'DELETE');
+    const {error:disabled}=await admin.from('users').update({status:'deleted',clerk_disabled:true}).eq('id',owner);if(disabled)throw disabled;
   }
   if(rateKeys.length)await admin.from('card_studio_limits').delete().in('key',rateKeys);
-  console.log('Synthetic accounts, records, uploads and rate-limit fixtures cleaned up.');
+  console.log('Synthetic Clerk accounts, cards, uploads and rate fixtures cleaned. Internal deleted-account tombstones/Free subscriptions remain for webhook safety.');
 }

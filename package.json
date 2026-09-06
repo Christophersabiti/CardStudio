@@ -4,16 +4,19 @@
   "private": true,
   "description": "White-label digital business card builder with vCard QR codes. Next.js + Supabase.",
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev --webpack --hostname localhost",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
-    "test:integration": "node tests/integration.mjs"
+    "test:integration": "node tests/integration.mjs",
+    "check:auth": "node scripts/check-auth-setup.mjs",
+    "account:link": "node scripts/link-legacy-account.mjs",
+    "start:local": "next start --hostname localhost --port 3000"
   },
   "dependencies": {
-    "@supabase/ssr": "0.12.6",
+    "@clerk/nextjs": "7.9.1",
     "@supabase/supabase-js": "2.115.0",
     "html-to-image": "^1.11.11",
     "nanoid": "^5.0.7",
@@ -26,6 +29,7 @@
     "zod": "4.5.4"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@types/node": "^20.16.11",
     "@types/pngjs": "6.0.5",
     "@types/qrcode": "^1.5.5",

@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/server";
-import { currentUser } from "@/lib/supabase/session";
+import { currentUser } from "@/lib/auth/session";
 import { errorResponse, HttpError } from "@/lib/http";
 import { z } from "zod";
 

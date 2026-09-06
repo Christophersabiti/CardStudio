@@ -1,6 +1,6 @@
-import type { User } from "@supabase/supabase-js";
+import type { SessionUser } from "./auth/session";
 
-// Use only with a user verified by auth.getUser(). User metadata is editable.
-export function isAdministrator(user: Pick<User, "app_metadata" | "is_anonymous"> | null) {
-  return !!user && !user.is_anonymous && user.app_metadata.card_studio_role === "admin";
+// Only a server-resolved internal account supplies this role.
+export function isAdministrator(user: Pick<SessionUser, "appRole" | "status"> | null) {
+  return user?.status === "active" && user.appRole === "admin";
 }

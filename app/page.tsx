@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Studio from "@/components/Studio";
 import { activeBrand } from "@/lib/brand";
-import { currentUser } from "@/lib/supabase/session";
+import { currentUser } from "@/lib/auth/session";
 
 export default async function Home({searchParams}:{searchParams:Promise<{mode?:string}>}) {
   const user = await currentUser();

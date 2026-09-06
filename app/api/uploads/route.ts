@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { currentUser } from "@/lib/supabase/session";
+import { currentUser } from "@/lib/auth/session";
 import { storeImage } from "@/lib/media";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkOrigin, errorResponse, HttpError, jsonResponse, readJson } from "@/lib/http";

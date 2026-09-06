@@ -1,7 +1,7 @@
 import "server-only";
 import type { CardData, RecordKind, StudioRecord } from "./types";
 import { createAdminClient } from "./supabase/server";
-import { currentUser } from "./supabase/session";
+import { currentUser } from "./auth/session";
 import { cardSchema, groupSchema, createSchema, updateSchema, slugSchema } from "./validation";
 import { checkOrigin, errorResponse, HttpError, jsonResponse, readJson } from "./http";
 import { rateLimit } from "./rate-limit";

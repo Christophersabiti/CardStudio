@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Brand } from "@/lib/brand";
+import AuthControls from "./AuthControls";
+import { isClerkConfigured } from "@/lib/auth/config";
 
 export default function Header({ brand }: { brand: Brand }) {
   return (
@@ -28,7 +30,10 @@ export default function Header({ brand }: { brand: Brand }) {
           </span>
         </span>
       </Link>
-      <nav className="ml-auto flex gap-3 text-sm font-semibold" aria-label="Main navigation"><Link href="/">Create</Link><Link href="/dashboard">My cards / Sign in</Link></nav>
+      <nav className="ml-auto flex flex-wrap items-center gap-3 text-sm font-semibold" aria-label="Main navigation">
+        <Link href="/">Create</Link>
+        {isClerkConfigured() ? <AuthControls/> : <Link href="/sign-in">Sign in</Link>}
+      </nav>
     </header>
   );
 }

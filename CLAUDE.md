@@ -2,12 +2,12 @@
 
 ## Current application
 
-Next.js 16 App Router, React 19, TypeScript, Tailwind, Supabase Auth/Postgres/
-private Storage. Phase 0 and Phase 1 are implemented. Read `README.md` and
-`docs/phase-0-1-operations.md` for setup, current verification and deployment gaps.
+Next.js 16 App Router, React 19, TypeScript, Tailwind, Clerk authentication, Supabase Postgres/
+private Storage. Commercialization Phases 1 and 2 are implemented locally; hosted cutover remains pending. Read `README.md` and
+`docs/saas-phase-2.md` for current setup, current verification and deployment gaps.
 
-The server key was validated on 5 September 2026 and all 38 live integration
-checks passed. Never print keys or substitute a public key for the server
+The server key was validated on 5 September 2026 and all 38 legacy-auth integration
+checks passed then. That is not verification of the Clerk cutover. Never print keys or substitute a public key for the server
 credential. Revalidate environment configuration when changing deployment targets.
 
 ## Before committing
@@ -18,9 +18,10 @@ it creates and removes synthetic test accounts, without sending email.
 
 ## Authorization and publication invariants
 
-- `lib/supabase/session.ts` uses cookie-based SSR sessions; verify identity with
-  `getUser`, never trust an unverified `getSession().user` for access decisions.
-  `proxy.ts` refreshes cookies; every mutation independently checks identity.
+- `lib/auth/session.ts` verifies Clerk identity, live session/account status and
+  the internal UUID mapping. Every private handler independently checks identity.
+  `lib/supabase/session.ts` passes Clerk JWTs to owner-scoped database reads.
+  Never derive ownership or admin roles from client-supplied metadata.
 - `lib/supabase/server.ts` is privileged and `server-only`. Every mutation must
   filter by the verified `owner_id`, not a client-provided ID or email. Never
   import the admin client into client components.
@@ -73,7 +74,7 @@ revocation. Retain media referenced by drafts, published snapshots and Trash.
 
 Brand presets in `lib/brand.ts` feed CSS variables from the root layout. Preserve
 neutral, PMI Uganda and Sabtech presets. The canonical site origin must match the
-origin used for email login and Supabase's redirect allowlist.
+origin used for Clerk login and authorized parties.
 
 Async Next.js route params and `cookies()` must be awaited. `next lint` has been
 replaced with ESLint's CLI; configuration is `eslint.config.mjs`. ESLint 9 remains
