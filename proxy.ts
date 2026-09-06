@@ -2,8 +2,8 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
 import { authorizedParties, isClerkConfigured } from "@/lib/auth/config";
 
-const privatePage = createRouteMatcher(["/dashboard(.*)", "/edit(.*)", "/admin(.*)"]);
-const privateApi = createRouteMatcher(["/api/cards(.*)", "/api/groups(.*)", "/api/uploads(.*)", "/api/account(.*)"]);
+const privatePage = createRouteMatcher(["/dashboard(.*)", "/edit(.*)", "/admin(.*)", "/billing(.*)"]);
+const privateApi = createRouteMatcher(["/api/cards(.*)", "/api/groups(.*)", "/api/uploads(.*)", "/api/account(.*)", "/api/billing/checkout", "/api/billing/trial", "/api/admin(.*)"]);
 const clerk = clerkMiddleware(async (identity, request) => {
   const { userId } = await identity();
   if (!userId && privateApi(request)) {

@@ -1,15 +1,16 @@
-import Header from "@/components/Header";
-import Studio from "@/components/Studio";
-import { activeBrand } from "@/lib/brand";
-import { currentUser } from "@/lib/auth/session";
-
-export default async function Home({searchParams}:{searchParams:Promise<{mode?:string}>}) {
-  const user = await currentUser();
-  const mode = (await searchParams).mode;
+import Shell from "@/components/marketing/Shell";
+import Home from "@/components/marketing/Home";
+import { redirect } from "next/navigation";
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
+  const { mode } = await searchParams;
+  if (mode === "cards" || mode === "groups") redirect(`/studio?mode=${mode}`);
   return (
-    <>
-      <Header brand={activeBrand} />
-      <Studio brand={activeBrand} userId={user?.id || null} initialKind={mode === "groups" ? "groups" : "cards"} />
-    </>
+    <Shell>
+      <Home />
+    </Shell>
   );
 }

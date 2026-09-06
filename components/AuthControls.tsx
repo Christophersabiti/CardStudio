@@ -8,6 +8,7 @@ export default function AuthControls() {
   return isSignedIn ? <>
     <Link href="/dashboard">My cards</Link>
     <Link href="/dashboard/account">Account</Link>
+    <Link href="/billing">Billing</Link>
     <SignOutButton redirectUrl="/sign-in"><button type="button">Sign out</button></SignOutButton>
     <UserButton userProfileMode="navigation" userProfileUrl="/dashboard/account" />
   </> : <><Link href="/sign-in">Sign in</Link><Link href="/sign-up">Create account</Link></>;

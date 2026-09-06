@@ -36,6 +36,9 @@ export function errorResponse(e: unknown) {
     if (e.retryAfter) res.headers.set("Retry-After", String(e.retryAfter));
     return res;
   }
+  if (e && typeof e === "object" && "code" in e && e.code === "P0001") {
+    return jsonResponse({error: "Your plan limit or account settings do not allow this action. Review Billing or contact support."},409);
+  }
   // Never log request bodies, email addresses, tokens, or database error text.
   console.error("card_studio_request_failed", {type: e instanceof Error ? e.name : "UnknownError"});
   return jsonResponse({error: "We couldn't complete that request. Please try again."}, 503);

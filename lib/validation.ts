@@ -38,5 +38,5 @@ export const createSchema = z.object({ id: z.uuid(), data: z.unknown(), publish:
 export const updateSchema = z.object({ action: z.enum(["save","publish","unpublish","delete","restore","duplicate"]), revision: z.number().int().nonnegative(), data: z.unknown().optional(), consent: z.boolean().default(false), id: z.uuid().optional() }).strict();
 export const slugSchema = z.string().regex(/^[A-Za-z0-9_-]{6,40}$/);
 export function safeNext(value: string | null | undefined): string {
-  return value && /^\/(?:dashboard(?:\?[^\\]*)?|edit\/(?:cards|groups)\/[A-Za-z0-9_-]{6,40}|\?[^\\]*)$/.test(value) ? value : "/dashboard";
+  return value && /^\/(?:studio(?:\?[^\\]*)?|billing|dashboard(?:\?[^\\]*)?|edit\/(?:cards|groups)\/[A-Za-z0-9_-]{6,40}|\?[^\\]*)$/.test(value) ? value : "/dashboard";
 }

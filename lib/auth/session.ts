@@ -10,7 +10,7 @@ export interface SessionUser {
   id: string;
   clerkId: string;
   email: string;
-  appRole: "member" | "admin";
+  appRole: "member" | "admin" | "superadmin";
   status: "active";
 }
 

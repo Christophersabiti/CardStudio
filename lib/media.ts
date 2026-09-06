@@ -28,9 +28,15 @@ export async function storeImage(value: string, ownerId: string): Promise<string
   const existing = await client.from("card_studio_media").select("id").eq("path",path).maybeSingle();
   if (existing.error) throw existing.error;
   if (existing.data) return `/api/media/${existing.data.id}`;
+  const {data,error} = await client.from("card_studio_media").insert({path,owner_id:ownerId,size_bytes:bytes.length,mime_type:"image/webp"}).select("id").single();
+  if(error) {
+    if(error.code === "23505") {
+      const retry=await client.from("card_studio_media").select("id").eq("path",path).eq("owner_id",ownerId).single();
+      if(retry.data)return `/api/media/${retry.data.id}`;
+    }
+    throw error;
+  }
   const upload = await client.storage.from("card-studio-private").upload(path,bytes,{contentType:"image/webp",upsert:true});
-  if (upload.error) throw upload.error;
-  const {data,error} = await client.from("card_studio_media").upsert({path,owner_id:ownerId},{onConflict:"path"}).select("id").single();
-  if (error) throw error;
+  if(upload.error) { await client.from("card_studio_media").delete().eq("id",data.id).eq("owner_id",ownerId); throw upload.error; }
   return `/api/media/${data.id}`;
 }
