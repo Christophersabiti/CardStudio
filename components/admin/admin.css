@@ -1,0 +1,315 @@
+.admin-shell {
+  --admin-ink: #172339;
+  --admin-muted: #617086;
+  color: var(--admin-ink);
+  background: #f5f7fb;
+  min-height: calc(100vh - 80px);
+  padding: 36px max(20px, calc((100vw - 1240px) / 2)) 80px;
+}
+.admin-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.admin-heading h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin: 8px 0;
+}
+.admin-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+  text-transform: uppercase;
+  color: #5b50c6;
+}
+.admin-heading p {
+  color: var(--admin-muted);
+  font-size: 14px;
+}
+.admin-access {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #c5dfd8;
+  border-radius: 100px;
+  background: #edf8f3;
+  color: #256349;
+  font-size: 12px;
+  font-weight: 600;
+}
+.admin-access:before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2e8461;
+}
+.admin-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid #dce2ec;
+  margin-bottom: 32px;
+  padding: 0 0 1px;
+}
+.admin-nav a {
+  white-space: nowrap;
+  padding: 16px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #617086;
+  border-bottom: 3px solid transparent;
+  min-height: 48px;
+}
+.admin-nav a:hover {
+  color: #4238a3;
+  background: #eeedf8;
+}
+.admin-nav a[aria-current="page"] {
+  color: #483eb1;
+  border-color: #6556dc;
+}
+.admin-shell :focus-visible {
+  outline: 3px solid #8b80ec;
+  outline-offset: 3px;
+}
+.admin-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin: 0 0 24px;
+}
+.admin-section-heading h2 {
+  font-size: 23px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+}
+.admin-section-heading p {
+  font-size: 14px;
+  color: #617086;
+  margin-top: 6px;
+}
+.admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 26px;
+}
+.admin-kpi {
+  padding: 24px;
+  border: 1px solid #e0e5ed;
+  background: white;
+  border-radius: 16px;
+}
+.admin-kpi span {
+  font-size: 13px;
+  color: #617086;
+}
+.admin-kpi strong {
+  display: block;
+  font-size: 34px;
+  letter-spacing: -1px;
+  margin: 12px 0 6px;
+}
+.admin-kpi small {
+  font-size: 12px;
+  color: #617086;
+}
+.admin-shell .cs-panel {
+  border: 1px solid #e0e5ed;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 3px 12px #17233903;
+  padding: 26px;
+}
+.admin-shell .cs-input {
+  width: 100%;
+  background: #fafbfd;
+  border: 1px solid #d8dfeb;
+  border-radius: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: #172339;
+  font-size: 14px;
+}
+.admin-shell label {
+  color: #46556c;
+  font-size: 13px;
+  font-weight: 500;
+}
+.admin-shell .cs-button {
+  border-radius: 9px;
+  font-size: 13px;
+  min-height: 44px;
+  box-shadow: none;
+  padding: 11px 16px;
+}
+.admin-shell .cs-primary {
+  background: #5748cc;
+  border-color: #5748cc;
+  color: #fff;
+}
+.admin-shell .cs-muted {
+  color: #617086;
+}
+.admin-shell form h2,
+.admin-shell form h3 {
+  font-weight: 650;
+}
+.admin-columns {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+}
+.admin-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px 0;
+  border-bottom: 1px solid #edf0f5;
+  font-size: 14px;
+  gap: 16px;
+}
+.admin-status-row:last-child {
+  border-bottom: 0;
+}
+.admin-shortcut {
+  display: block;
+  border: 1px solid #e1e6ef;
+  border-radius: 10px;
+  padding: 17px;
+  margin-top: 12px;
+  transition: background 0.15s;
+}
+.admin-shortcut:hover {
+  background: #f6f5fe;
+  border-color: #c7c0ee;
+}
+.admin-shortcut strong {
+  display: block;
+  font-size: 14px;
+}
+.admin-shortcut span {
+  display: block;
+  font-size: 13px;
+  color: #617086;
+  margin-top: 5px;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.admin-table th {
+  text-align: left;
+  background: #f8f9fc;
+  color: #617086;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  padding: 16px;
+}
+.admin-table td {
+  padding: 18px 16px;
+  border-top: 1px solid #edf0f5;
+  max-width: 260px;
+  overflow-wrap: anywhere;
+}
+.admin-table tbody tr:hover {
+  background: #fafbfe;
+}
+.admin-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e0e5ed;
+  border-radius: 14px;
+  background: white;
+}
+.admin-badge {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #eef0f7;
+  color: #46556c;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+.admin-empty {
+  padding: 55px 24px;
+  text-align: center;
+  color: #617086;
+  background: white;
+  border: 1px dashed #d7dfea;
+  border-radius: 14px;
+}
+.admin-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+  gap: 14px;
+  color: #617086;
+  font-size: 13px;
+}
+.admin-shell .grid.lg\:grid-cols-2 {
+  grid-template-columns: 1fr;
+}
+.admin-shell .grid.lg\:grid-cols-2 > form {
+  max-width: 900px;
+}
+.admin-shell .grid.md\:grid-cols-2 {
+  gap: 20px;
+}
+.admin-identity {
+  font-family: monospace;
+  font-size: 11px;
+  color: #728096;
+}
+.admin-shell details summary {
+  cursor: pointer;
+}
+.admin-shell p[role="status"]:empty {
+  display: none;
+}
+@media (max-width: 760px) {
+  .admin-shell {
+    padding-top: 24px;
+  }
+  .admin-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .admin-heading h1 {
+    font-size: 28px;
+  }
+  .admin-kpis {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .admin-kpi {
+    padding: 18px;
+  }
+  .admin-columns {
+    grid-template-columns: 1fr;
+  }
+  .admin-nav a {
+    padding: 14px 12px;
+  }
+  .admin-shell .cs-panel {
+    padding: 20px;
+  }
+  .admin-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell * {
+    transition: none !important;
+  }
+}

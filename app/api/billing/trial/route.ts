@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     checkOrigin(req);
     const u = await currentUser();
     if (!u) throw new HttpError(401, "Sign in to continue.");
+    if(u.appRole==="superadmin")throw new HttpError(409,"Superadmin has unlimited access and does not need a subscription or trial.");
     await rateLimit(u.id, "trial", 3, 60);
     const { data, error } = await createAdminClient().rpc(
       "start_account_trial",

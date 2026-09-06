@@ -24,6 +24,7 @@ export default function PricingPlans({
   checkout,
   trialDays,
   currentPlan,
+  unlimited = false,
 }: {
   plans: Plan[];
   prices: Price[];
@@ -31,6 +32,7 @@ export default function PricingPlans({
   checkout: boolean;
   trialDays: number;
   currentPlan?: string;
+  unlimited?: boolean;
 }) {
   const [interval, setInterval] = useState("month");
   const intervals = ["month", "year"].filter((i) =>
@@ -103,7 +105,7 @@ export default function PricingPlans({
                         /month.
                       </p>
                     )}
-                    {checkout ? (
+                    {unlimited ? <p className="cs-muted my-4">Customer plan · your superadmin access is unlimited.</p> : checkout ? (
                       <Link
                         className="mk-button my-4"
                         href={"/onboarding?plan=" + v.id}
@@ -132,7 +134,7 @@ export default function PricingPlans({
                 <li>Private drafts and controlled publishing</li>
                 {meta?.features.map((feature,i)=><li key={i}>{feature}</li>)}
               </ul>
-              {p.code === "free" && (
+              {p.code === "free" && !unlimited && (
                 <Link className="mk-button" href="/onboarding?plan=free">
                   Choose Free ↗
                 </Link>

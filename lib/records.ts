@@ -28,7 +28,7 @@ export async function recordEndpoint(req: Request, kind: RecordKind, slug?: stri
   try {
     checkOrigin(req);
     const user = await currentUser();
-    if(user&&!user.onboardingComplete)throw new HttpError(409,"Choose a plan before saving your first card.");
+    if(user&&user.appRole!=="superadmin"&&!user.onboardingComplete)throw new HttpError(409,"Choose a plan before saving your first card.");
     if (!user) throw new HttpError(401,"Sign in to save and manage your cards.");
     await rateLimit(user.id,"record-write",30);
     const raw = await readJson(req);

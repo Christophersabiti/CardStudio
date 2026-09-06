@@ -15,6 +15,7 @@ export async function POST(req: Request) {
     checkOrigin(req);
     const user = await currentUser();
     if (!user) throw new HttpError(401, "Sign in to continue.");
+    if(user.appRole==="superadmin")throw new HttpError(409,"Superadmin has unlimited access and does not need a subscription or trial.");
     await rateLimit(user.id, "checkout", 5, 60);
     if (!pesapalReady())
       throw new HttpError(503, "Checkout is not configured yet.");

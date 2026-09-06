@@ -8,6 +8,16 @@ export async function GET() {
   try {
     const u = await currentUser();
     if (!u) return jsonResponse({}, 401);
+    if (u.appRole === "superadmin")
+      return jsonResponse({
+        name: "Superadmin",
+        unlimited: true,
+        free: false,
+        upgrade: false,
+        nearing: [],
+        usage: {},
+        limits: {},
+      });
     const c = createAdminClient();
     const [cat, e, counts] = await Promise.all([
       catalog(),
@@ -43,7 +53,6 @@ export async function GET() {
       limits: e.data,
       nearing: result.nearing,
       upgrade:
-        u.appRole !== "superadmin" &&
         cat.settings.checkout_enabled &&
         pesapalReady() &&
         offers.length > 0 &&

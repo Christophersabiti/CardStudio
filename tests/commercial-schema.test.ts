@@ -289,3 +289,15 @@ test('new accounts require onboarding and private recovery is never client-reada
  await db.query('select update_plan_presentation($1,null,$2)',[admin,JSON.stringify({upgrade_threshold:85})]);
  assert.equal((await db.query<{upgrade_threshold:number}>('select upgrade_threshold from commercial_settings')).rows[0].upgrade_threshold,85);
 });
+
+test('superadmins exceed every plan quota while usage remains recorded',async()=>{
+ await db.exec('begin');
+ try {
+  for(const [metric,resource] of [['active_cards','card'],['monthly_cards','card'],['active_groups','group'],['active_qr_codes','qr_code'],['monthly_qr_codes','qr_code'],['storage_bytes','media']]){
+   const period=metric.startsWith('monthly')?'2026-09':'current';
+   await db.query('select quota_delta($1,$2,$3,1000000000000,$4,gen_random_uuid(),gen_random_uuid())',[admin,metric,period,resource]);
+   const row=(await db.query<{value:number}>('select value from usage_counters where owner_id=$1 and metric=$2 and period_key=$3',[admin,metric,period])).rows[0];
+   assert.ok(Number(row.value)>=1000000000000);
+  }
+ }finally{await db.exec('rollback');}
+});

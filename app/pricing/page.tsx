@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function Pricing() {
   const cat = await catalog();
   const u=await currentUser();
-  const current=u?await createAdminClient().rpc("effective_plan",{account_id:u.id}):null;
+  const current=u&&u.appRole!=="superadmin"?await createAdminClient().rpc("effective_plan",{account_id:u.id}):null;
   return (
     <Shell>
       <main className="mk-detail" id="main-content">
@@ -24,6 +24,7 @@ export default async function Pricing() {
           allowances below are the current available offers.
         </p>
         <PricingPlans
+          unlimited={u?.appRole==="superadmin"}
           currentPlan={current?.data?.id}
           plans={cat.plans}
           prices={cat.prices}

@@ -12,6 +12,36 @@ import { pesapalReady } from "@/lib/billing/pesapal";
 export default async function Billing() {
   const u = await currentUser();
   if (!u) redirect("/sign-in?next=/billing");
+  if (u.appRole === "superadmin")
+    return (
+      <>
+        <Header brand={activeBrand} />
+        <main className="max-w-5xl mx-auto px-5 pb-16">
+          <h1 className="text-3xl font-bold">Your access</h1>
+          <section className="cs-panel mt-6">
+            <p className="text-xs cs-muted uppercase tracking-widest">
+              Superadmin
+            </p>
+            <h2 className="text-2xl font-bold mt-3">
+              Unlimited access. No subscription required.
+            </h2>
+            <p className="cs-muted mt-3">
+              Your account is exempt from card, group, storage and monthly
+              creation quotas. Customer billing plans do not restrict your
+              access.
+            </p>
+            <div className="flex gap-3 mt-6">
+              <Link href="/admin?tab=plans" className="cs-button cs-primary">
+                Manage customer plans
+              </Link>
+              <Link href="/dashboard" className="cs-button">
+                My cards
+              </Link>
+            </div>
+          </section>
+        </main>
+      </>
+    );
   const c = createAdminClient();
   const [cat, e, s, t, usage, orders] = await Promise.all([
     catalog(),
@@ -44,7 +74,7 @@ export default async function Billing() {
             My cards
           </Link>
         </div>
-        <UsageBanner/>
+        <UsageBanner />
         <section className="cs-panel my-6">
           <h2 className="text-xl">Current plan: {e.data.name}</h2>
           <p className="cs-muted mt-2">

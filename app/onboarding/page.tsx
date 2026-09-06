@@ -14,6 +14,7 @@ export default async function Onboarding({
   const u = await currentUser();
   const intent = (await searchParams).plan || "";
   if (!u) redirect("/start?plan=" + encodeURIComponent(intent || "choose"));
+  if(u.appRole==="superadmin")redirect("/admin");
   const cat = await catalog();
   const price = cat.prices.find(
     (p) =>

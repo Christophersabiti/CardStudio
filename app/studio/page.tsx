@@ -7,7 +7,7 @@ import { currentUser } from "@/lib/auth/session";
 
 export default async function Home({searchParams}:{searchParams:Promise<{mode?:string}>}) {
   const user = await currentUser();
-  if(user&&!user.onboardingComplete)redirect("/onboarding");
+  if(user&&user.appRole!=="superadmin"&&!user.onboardingComplete)redirect("/onboarding");
   const mode = (await searchParams).mode;
   return (
     <>

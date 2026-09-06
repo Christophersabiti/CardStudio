@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 type Usage = {
   name: string;
+  unlimited?: boolean;
   free: boolean;
   upgrade: boolean;
   nearing: string[];
@@ -24,6 +25,7 @@ export default function UsageBanner() {
     load();
     window.addEventListener("card-studio-usage", load);
     window.addEventListener("focus", load);
+
     return () => {
       active = false;
       window.removeEventListener("card-studio-usage", load);
@@ -31,6 +33,20 @@ export default function UsageBanner() {
     };
   }, []);
   if (!data?.name) return null;
+  if (data.unlimited)
+    return (
+      <aside className="cs-panel my-5 flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <p className="font-bold">Superadmin · Unlimited access</p>
+          <p className="text-sm cs-muted mt-1">
+            No card, storage or creation quotas. No billing plan required.
+          </p>
+        </div>
+        <Link className="cs-button" href="/admin">
+          Control center
+        </Link>
+      </aside>
+    );
   return (
     <aside className="cs-panel my-5 flex flex-wrap gap-4 items-center justify-between">
       <div>

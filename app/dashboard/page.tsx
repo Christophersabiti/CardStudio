@@ -19,7 +19,7 @@ export default async function DashboardPage({
 }) {
   const user = await currentUser();
   if (!user) redirect("/login?next=/dashboard");
-  if (!user.onboardingComplete) redirect("/onboarding");
+  if (user.appRole!=="superadmin"&&!user.onboardingComplete) redirect("/onboarding");
   const params = await searchParams;
   const page = Math.max(1, Math.min(10000, parseInt(params.page || "1") || 1));
   const query = (params.q || "").trim().slice(0, 120);
