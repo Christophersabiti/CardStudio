@@ -1,4 +1,6 @@
 "use client";
+import { ArrowUpRightIcon } from "@/components/icons";
+
 import CardFrame from "@/components/CardFrame";
 
 import Link from "next/link";
@@ -188,7 +190,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
             </div>
           </>}
           {publicUrl && matchesPublished && <div className="flex gap-2"><input aria-label="Public card link" readOnly className="cs-input min-w-0 flex-1" value={publicUrl}/><button className="cs-button" onClick={async()=>{try{await navigator.clipboard.writeText(publicUrl);setNotice("Link copied.");}catch{setError("Copy isn't available. Select and copy the link above.");}}}>Copy link</button></div>}
-          {publicUrl && <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="text-sm underline">Open last published version ↗</a>}
+          {publicUrl && <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="text-sm underline">Open last published version <ArrowUpRightIcon /></a>}
           {notice && <p role="status" className="text-sm">{notice}</p>}
           {error && <p role="alert" className="cs-error">{error}{error.includes("plan limit")&&<Link href="/pricing" className="cs-button ml-3">Upgrade plan</Link>}</p>}
           {kind==="groups" && <p className="text-xs cs-muted">Contact-import steps vary by phone. Downloading a file does not confirm that every contact was added.</p>}

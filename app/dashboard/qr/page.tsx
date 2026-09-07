@@ -1,3 +1,4 @@
+import { ArrowUpRightIcon } from "@/components/icons";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
@@ -71,7 +72,7 @@ export default async function Page({
             <p className="qr-muted">Keep the code. Update what it opens.</p>
           </div>
           <Link className="cs-button cs-primary" href="/qr-studio">
-            Create QR ↗
+            Create QR <ArrowUpRightIcon />
           </Link>
         </div>
         <nav className="qr-inline">
@@ -85,7 +86,7 @@ export default async function Page({
               {s[0].toUpperCase() + s.slice(1)}
             </Link>
           ))}
-          <Link href="/dashboard">Contact cards ↗</Link>
+          <Link href="/dashboard">Contact cards <ArrowUpRightIcon /></Link>
         </nav>
         <Collection items={r.data as QrRecord[]} metrics={metrics} />
         <nav className="qr-inline">

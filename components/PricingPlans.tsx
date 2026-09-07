@@ -1,4 +1,6 @@
 "use client";
+import { ArrowUpRightIcon } from "@/components/icons";
+
 import Link from "next/link";
 import { useState } from "react";
 import type { Plan, Price } from "@/lib/billing/catalog";
@@ -110,7 +112,7 @@ export default function PricingPlans({
                         className="mk-button my-4"
                         href={"/onboarding?plan=" + v.id}
                       >
-                        Choose {p.name} ↗
+                        Choose {p.name} <ArrowUpRightIcon />
                       </Link>
                     ) : (
                       <p className="cs-muted my-4">
@@ -136,7 +138,7 @@ export default function PricingPlans({
               </ul>
               {p.code === "free" && !unlimited && (
                 <Link className="mk-button" href="/onboarding?plan=free">
-                  Choose Free ↗
+                  Choose Free <ArrowUpRightIcon />
                 </Link>
               )}
             </article>

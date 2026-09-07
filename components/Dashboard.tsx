@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import { ArrowUpRightIcon } from "@/components/icons";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect, useTransition, useCallback } from "react";
@@ -293,7 +295,7 @@ export default function Dashboard({
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            View public card ↗
+                            View public card <ArrowUpRightIcon />
                           </a>
                         )}
                         <button

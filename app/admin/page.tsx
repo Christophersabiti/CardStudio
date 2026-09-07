@@ -1,3 +1,4 @@
+import { ArrowUpRightIcon } from "@/components/icons";
 import "@/components/admin/admin.css";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -162,7 +163,7 @@ export default async function Admin({
           <div className="flex flex-wrap items-center gap-3">
             <span className="admin-access">Superadmin · Unlimited access</span>
             <Link href="/dashboard" className="cs-button">
-              My cards ↗
+              My cards <ArrowUpRightIcon />
             </Link>
           </div>
         </header>
@@ -242,19 +243,19 @@ export default async function Admin({
                 <section className="cs-panel">
                   <h3 className="text-lg font-bold">Manage your platform</h3>
                   <Link href="/admin?tab=accounts" className="admin-shortcut">
-                    <strong>Account access ↗</strong>
+                    <strong>Account access <ArrowUpRightIcon /></strong>
                     <span>
                       Review members, administrators and account status.
                     </span>
                   </Link>
                   <Link href="/admin?tab=plans" className="admin-shortcut">
-                    <strong>Plans & pricing ↗</strong>
+                    <strong>Plans & pricing <ArrowUpRightIcon /></strong>
                     <span>
                       Manage customer allowances, prices and plan presentation.
                     </span>
                   </Link>
                   <Link href="/admin?tab=resources" className="admin-shortcut">
-                    <strong>Content management ↗</strong>
+                    <strong>Content management <ArrowUpRightIcon /></strong>
                     <span>
                       Review cards and groups without leaving the control
                       center.

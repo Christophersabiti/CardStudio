@@ -1,3 +1,4 @@
+import { ArrowUpRightIcon } from "@/components/icons";
 import EmailSignature from "@/components/marketing/EmailSignature";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -32,11 +33,11 @@ export default async function Page({
           ))}
         </div>
         <Link className="mk-button" href={slug === "qr-sharing" ? "/qr-studio" : "/studio"}>
-          Open the studio ↗
+          Open the studio <ArrowUpRightIcon />
         </Link>
         {slug === "contact" && (
           <p className="mk-lead">
-            <a href="mailto:sabiti.christopher@gmail.com">Email support ↗</a>
+            <a href="mailto:sabiti.christopher@gmail.com">Email support <ArrowUpRightIcon /></a>
           </p>
         )}
       </main>

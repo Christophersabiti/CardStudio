@@ -1,4 +1,6 @@
 "use client";
+import { ArrowUpRightIcon } from "@/components/icons";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -55,7 +57,7 @@ export default function Collection({
             Events, places, images, videos and useful links. All in one scan.
           </p>
           <Link className="cs-button cs-primary" href="/qr-studio">
-            Create a QR code ↗
+            Create a QR code <ArrowUpRightIcon />
           </Link>
         </div>
       ) : (
@@ -96,7 +98,7 @@ export default function Collection({
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          View ↗
+                          View <ArrowUpRightIcon />
                         </a>
                       )}
                     </>

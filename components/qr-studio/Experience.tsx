@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import { ArrowUpRightIcon } from "@/components/icons";
+
 import { useState, useEffect, startTransition } from "react";
 import { directionsUrl, videoEmbed, type QrData } from "@/lib/qr-studio/schema";
 function Media({
@@ -22,7 +24,7 @@ function Media({
       <p>
         Media could not load.{" "}
         <a href={source} target="_blank" rel="noopener noreferrer">
-          Open original ↗
+          Open original <ArrowUpRightIcon />
         </a>
       </p>
     );
@@ -74,7 +76,7 @@ function Media({
       target="_blank"
       rel="noopener noreferrer"
     >
-      Open video ↗
+      Open video <ArrowUpRightIcon />
     </a>
   );
 }
@@ -140,7 +142,7 @@ export default function Experience({
               target="_blank"
               rel="noopener noreferrer"
             >
-              Get directions ↗
+              Get directions <ArrowUpRightIcon />
             </a>
             {place.hours && <p className="qr-description">{place.hours}</p>}
             {place.phone && (
@@ -165,7 +167,7 @@ export default function Experience({
         )}
         {d.type === "url" && (
           <a className="qr-action" href={d.url || undefined}>
-            Visit website ↗
+            Visit website <ArrowUpRightIcon />
           </a>
         )}
         <div className="qr-link-list">
@@ -180,7 +182,7 @@ export default function Experience({
               rel="noopener noreferrer"
             >
               {l.label || "Link label"}
-              <span>↗</span>
+              <span><ArrowUpRightIcon /></span>
             </a>
           ))}
         </div>

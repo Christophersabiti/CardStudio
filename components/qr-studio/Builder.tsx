@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import { ArrowUpRightIcon } from "@/components/icons";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, startTransition } from "react";
@@ -144,7 +146,7 @@ export default function Builder({
           </p>
         </div>
         <Link href="/dashboard/qr" className="cs-button">
-          My QR codes ↗
+          My QR codes <ArrowUpRightIcon />
         </Link>
       </div>
       <nav className="qr-tabs" aria-label="Editor sections">
@@ -532,7 +534,7 @@ export default function Builder({
                     rel="noopener noreferrer"
                     href={`/view/${record.slug}`}
                   >
-                    Open published page ↗
+                    Open published page <ArrowUpRightIcon />
                   </a>
                   <button
                     className="cs-button"

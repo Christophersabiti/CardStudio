@@ -1,4 +1,7 @@
 "use client";
+import { ArrowUpRightIcon } from "@/components/icons";
+
+import { MailIcon, UsersIcon, ScanIcon } from "@/components/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -48,7 +51,7 @@ export default function Navigation() {
         aria-controls="public-navigation"
         onClick={() => setMobile(!mobile)}
       >
-        {mobile ? "Close" : "Menu"} <span aria-hidden>☰</span>
+        {mobile ? "Close" : "Menu"}
       </button>
       <nav
         id="public-navigation"
@@ -85,13 +88,13 @@ export default function Navigation() {
                     setMobile(false);
                   }}
                 >
-                  {label === "Products" && <span className="mk-product-icon" aria-hidden>{slug === "email-signatures" ? "✉" : slug === "digital-cards" ? "▣" : slug === "group-contacts" ? "♧" : "▦"}</span>}
+                  {label === "Products" && <span className="mk-product-icon" aria-hidden>{slug === "email-signatures" ? <MailIcon width="16" height="16" /> : slug === "group-contacts" ? <UsersIcon width="16" height="16" /> : <ScanIcon width="16" height="16" />}</span>}
                   <strong>
                     {title}
-                    <span aria-hidden>↗</span>
+                    <span aria-hidden><ArrowUpRightIcon /></span>
                   </strong>
                   <small>{description}</small>
-                  {label === "Products" && <span className="mk-product-art" aria-hidden><span className="mk-mini-card"><i/><b/><b/><b/>{slug === "email-signatures" ? <em>Alex Morgan<br/>Creative Director</em> : <em>card studio ·</em>}</span><span className="mk-mini-badge">{slug === "email-signatures" ? "M　O　✉" : slug === "lead-capture" ? "Coming soon" : "Connect ↗"}</span></span>}
+                  {label === "Products" && <span className="mk-product-art" aria-hidden><span className="mk-mini-card"><i/><b/><b/><b/>{slug === "email-signatures" ? <em>Alex Morgan<br/>Creative Director</em> : <em>card studio ·</em>}</span><span className="mk-mini-badge">{slug === "email-signatures" ? "Email" : slug === "lead-capture" ? "Coming soon" : "Connect"}</span></span>}
                 </Link>
               ))}
             </div>
@@ -101,7 +104,7 @@ export default function Navigation() {
         <div className="mk-nav-actions">
           <Link href="/sign-in">Sign in</Link>
           <Link href="/studio" className="mk-button">
-            Create your card <span aria-hidden>↗</span>
+            Create your card <span aria-hidden><ArrowUpRightIcon /></span>
           </Link>
         </div>
       </nav>

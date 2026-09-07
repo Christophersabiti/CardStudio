@@ -1,4 +1,6 @@
 "use client";
+import { ArrowUpRightIcon, CheckIcon } from "@/components/icons";
+
 import Link from "next/link";
 import { useState } from "react";
 const steps = [
@@ -41,7 +43,7 @@ export default function Home() {
           </p>
           <div className="mk-cta-row">
             <Link className="mk-button" href="/studio">
-              Create your card <span aria-hidden>↗</span>
+              Create your card <span aria-hidden><ArrowUpRightIcon /></span>
             </Link>
             <Link className="mk-text-link" href="/explore/teams">
               Explore for teams <span aria-hidden>→</span>
@@ -53,11 +55,9 @@ export default function Home() {
         </div>
         <div className="mk-hero-art" aria-label="Example digital business card">
           <span className="mk-art-orbit" />
-          <span className="mk-art-star" aria-hidden>
-            ✳
-          </span>
+
           <div className="mk-float-note">
-            <span className="mk-note-icon">↗</span> A better first impression.
+            <span className="mk-note-icon"><ArrowUpRightIcon /></span> A better first impression.
           </div>
           <div className="mk-phone">
             <div className="mk-phone-top">
@@ -66,7 +66,7 @@ export default function Home() {
             </div>
             <div className="mk-cover">
               <div className="mk-cover-mark">
-                hello<span>↗</span>
+                hello<span><ArrowUpRightIcon /></span>
               </div>
             </div>
             <div className="mk-avatar">AN</div>
@@ -83,10 +83,10 @@ export default function Home() {
                 Save contact <span>+</span>
               </div>
               <div className="mk-demo-row">
-                amina@example.com <span>↗</span>
+                amina@example.com <span><ArrowUpRightIcon /></span>
               </div>
               <div className="mk-demo-row">
-                Let’s build something good. <span>↗</span>
+                Let’s build something good. <span><ArrowUpRightIcon /></span>
               </div>
               <div className="mk-mini-brand">made with card studio</div>
             </div>
@@ -97,18 +97,18 @@ export default function Home() {
               <strong>Your details. One link.</strong>
               <small>Ready for your next introduction</small>
             </div>
-            <span>✓</span>
+            <span><CheckIcon /></span>
           </div>
         </div>
       </section>
       <section className="mk-ribbon" aria-label="Ways to connect">
         <span>Built for real conversations</span>
         <strong>Meetings</strong>
-        <i>✳</i>
+        <i aria-hidden>·</i>
         <strong>Events</strong>
-        <i>✳</i>
+        <i aria-hidden>·</i>
         <strong>Teams</strong>
-        <i>✳</i>
+        <i aria-hidden>·</i>
         <strong>Everyday hellos</strong>
       </section>
       <section className="mk-section mk-intro">
@@ -199,7 +199,7 @@ export default function Home() {
             <p>{steps[step].text}</p>
           </div>
           <Link href="/studio" className="mk-text-link">
-            Make your first card ↗
+            Make your first card <ArrowUpRightIcon />
           </Link>
         </div>
         <div className="mk-workspace">
@@ -217,7 +217,7 @@ export default function Home() {
                 <h3>Amina Namusoke</h3>
                 <p>Ideas worth sharing.</p>
               </div>
-              <span>↗</span>
+              <span><ArrowUpRightIcon /></span>
             </div>
             <div className="mk-workspace-lines">
               <span />
@@ -225,7 +225,7 @@ export default function Home() {
               <span />
             </div>
             <div className="mk-workspace-status">
-              ✓{" "}
+              <CheckIcon />{" "}
               {step === 0
                 ? "Private draft saved"
                 : step === 1
@@ -246,29 +246,29 @@ export default function Home() {
             </h2>
           </div>
           <Link className="mk-text-link" href="/pricing">
-            Explore the plans ↗
+            Explore the plans <ArrowUpRightIcon />
           </Link>
         </div>
         <div className="mk-audiences">
           <Link href="/explore/individuals">
             <div className="mk-audience-graphic">
               <span>
-                you<span>↗</span>
+                you<span><ArrowUpRightIcon /></span>
               </span>
             </div>
             <h3>
-              For individuals <span>↗</span>
+              For individuals <span><ArrowUpRightIcon /></span>
             </h3>
             <p>Your personality. Your work. Your next opportunity.</p>
           </Link>
           <Link href="/explore/teams">
             <div className="mk-audience-graphic team">
               <span>
-                us<span>✳</span>
+                us
               </span>
             </div>
             <h3>
-              For teams <span>↗</span>
+              For teams <span><ArrowUpRightIcon /></span>
             </h3>
             <p>Bring your group’s contacts into one shared space.</p>
           </Link>
@@ -282,7 +282,7 @@ export default function Home() {
             <br />a few things up.
           </h2>
           <Link href="/explore/faq" className="mk-text-link">
-            More answers ↗
+            More answers <ArrowUpRightIcon />
           </Link>
         </div>
         <div>
@@ -322,7 +322,7 @@ export default function Home() {
           Make it <em>yours.</em>
         </h2>
         <Link href="/studio" className="mk-button">
-          Create your card ↗
+          Create your card <ArrowUpRightIcon />
         </Link>
       </section>
     </main>
