@@ -301,3 +301,48 @@ test('superadmins exceed every plan quota while usage remains recorded',async()=
   }
  }finally{await db.exec('rollback');}
 });
+
+test("QR assets reserve quota, reject foreign references and revoke public access",async()=>{
+ const own=(await db.query<{id:string}>("select * from ensure_clerk_user('user_QrOwner','QR owner')")).rows[0].id;
+ const other=(await db.query<{id:string}>("select * from ensure_clerk_user('user_QrOther','QR other')")).rows[0].id;
+ const aid='aa111111-1111-4111-8111-111111111111',qid='bb111111-1111-4111-8111-111111111111';
+ await db.query("insert into qr_assets(id,owner_id,kind,size_bytes,upload_path) values($1,$2,'image',1000,'test/incoming')",[aid,own]);
+ assert.equal((await db.query<{value:number}>("select value from usage_counters where owner_id=$1 and metric='storage_bytes'",[own])).rows[0].value,1000);
+ const payload=JSON.stringify({type:'image',source:'/api/qr-assets/'+aid,media:[]});
+ await assert.rejects(db.query("insert into qr_codes(id,owner_id,slug,type,mode,title,data) values($1,$2,'qr-asset-test','image','dynamic','Image',$3)",[qid,own,payload]),/Asset is not ready/);
+ await db.query("update qr_assets set state='ready',path='test/ready',mime_type='image/webp' where id=$1",[aid]);
+ await assert.rejects(db.query("insert into qr_codes(id,owner_id,slug,type,mode,title,data) values($1,$2,'qr-asset-test','image','dynamic','Image',$3)",[qid,other,payload]),/Asset is not ready/);
+ await db.query("insert into qr_codes(id,owner_id,slug,type,mode,title,data,published,published_data) values($1,$2,'qr-asset-test','image','dynamic','Image',$3,true,$3)",[qid,own,payload]);
+ assert.equal((await db.query<{ok:boolean}>("select qr_asset_is_public($1) ok",[aid])).rows[0].ok,true);
+ await db.query("select record_qr_metric($1,'opens')",[qid]);
+ await db.query("select record_qr_metric($1,'clicks')",[qid]);
+ assert.deepEqual((await db.query("select opens,clicks from qr_metrics where qr_id=$1",[qid])).rows[0],{opens:1,clicks:1});
+ await db.query("update qr_codes set published=false where id=$1",[qid]);
+ assert.equal((await db.query<{ok:boolean}>("select qr_asset_is_public($1) ok",[aid])).rows[0].ok,false);
+ await db.query("update qr_assets set created_at=now()-interval '2 days',expires_at=now()-interval '1 day' where id=$1",[aid]);
+ assert.equal((await db.query("select * from claim_qr_asset_cleanup($1)",[own])).rows.length,0);
+ await db.query("update qr_codes set data='{}',published_data=null where id=$1",[qid]);
+ assert.equal((await db.query("select * from claim_qr_asset_cleanup($1)",[own])).rows.length,1);
+ await db.query("delete from qr_assets where id=$1",[aid]);
+ assert.equal((await db.query<{value:number}>("select value from usage_counters where owner_id=$1 and metric='storage_bytes'",[own])).rows[0].value,0);
+});
+test("browser roles cannot access QR assets, analytics or privileged functions",async()=>{
+ for(const role of ['anon','authenticated']) {
+  await db.exec(`set role ${role}`);
+  try{for(const sql of ["select * from qr_assets","select * from qr_metrics","select qr_asset_is_public('aa111111-1111-4111-8111-111111111111')","select record_qr_metric('bb111111-1111-4111-8111-111111111111','opens')"])await assert.rejects(db.query(sql),/permission denied/);}finally{await db.exec('reset role');}
+ }
+});
+
+test("cancelled upload capacity remains reserved until token expiry",async()=>{
+ const account=(await db.query<{id:string}>("select * from ensure_clerk_user('user_QrReserve','Reserve')")).rows[0].id;
+ const id='cc111111-1111-4111-8111-111111111111';
+ await db.query("insert into qr_assets(id,owner_id,kind,upload_path,upload_bucket,expected_bytes,reserved_bytes,size_bytes) values($1,$2,'image','reserve/incoming','qr-upload-1',10000,1000000,1000000)",[id,account]);
+ await db.query("update qr_assets set state='cancelled' where id=$1",[id]);
+ assert.equal((await db.query("select * from claim_qr_asset_cleanup($1)",[account])).rows.length,0);
+ assert.equal((await db.query<{value:number}>("select value from usage_counters where owner_id=$1 and metric='storage_bytes'",[account])).rows[0].value,1000000);
+ await db.query("update qr_assets set expires_at=now()-interval '1 second' where id=$1",[id]);
+ assert.equal((await db.query("select * from claim_qr_asset_cleanup($1)",[account])).rows.length,1);
+ await db.query("delete from qr_assets where id=$1",[id]);
+ assert.equal((await db.query<{value:number}>("select value from usage_counters where owner_id=$1 and metric='storage_bytes'",[account])).rows[0].value,0);
+ assert.equal((await db.query<{file_size_limit:number}>("select file_size_limit from storage.buckets where id='qr-upload-1'")).rows[0].file_size_limit,1000000);
+});

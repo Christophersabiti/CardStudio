@@ -41,6 +41,7 @@ export default async function DashboardPage({
             <p className="cs-muted mt-2">{user.email}</p>
           </div>
           <div className="flex gap-2">
+            <Link href="/dashboard/qr" className="cs-button">My QR codes</Link>
             {isAdministrator(user) && (
               <Link href="/admin" className="cs-button">
                 Administration

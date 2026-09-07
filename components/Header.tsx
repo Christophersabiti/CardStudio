@@ -31,7 +31,8 @@ export default function Header({ brand }: { brand: Brand }) {
         </span>
       </Link>
       <nav className="ml-auto flex flex-wrap items-center gap-3 text-sm font-semibold" aria-label="Main navigation">
-        <Link href="/studio">Create</Link>
+        <Link href="/studio">Create card</Link>
+        <Link href="/qr-studio">QR Studio</Link>
         {isClerkConfigured() ? <AuthControls/> : <Link href="/sign-in">Sign in</Link>}
       </nav>
     </header>

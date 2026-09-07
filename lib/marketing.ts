@@ -78,11 +78,11 @@ export const featureCopy: Record<
   "qr-sharing": {
     title: "Make the connection in a scan.",
     intro:
-      "Choose an offline contact QR or a profile QR that points to your latest published details.",
+      "Share an event, a place, helpful links, an image or a video with one branded QR code.",
     points: [
-      "Offline codes contain a fixed copy of your details.",
-      "Profile codes open your published card online.",
-      "Unpublish to withdraw access to the online profile.",
+      "Add your event details, directions, booking links or media.",
+      "Add a caption, with custom colors and center images on eligible plans.",
+      "Publish updates behind the same QR. Unpublish when you are done.",
     ],
   },
   "group-contacts": {

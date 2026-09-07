@@ -9,6 +9,12 @@ for database preparation. Older phase labels below describe the original app.
 A branded digital business-card and group-contact builder built with Next.js 16,
 React 19, TypeScript, Tailwind, and Supabase.
 
+## QR Studio
+
+Event, location, link, image and video QR experiences are implemented locally.
+See [QR Studio release setup](docs/qr-studio-release.md) for the new migration,
+upload cleanup, plan controls and remaining hosted/device acceptance checks.
+
 ## Features
 
 - Live card previews, local draft recovery, offline vCard QR codes and named QR/PNG exports.

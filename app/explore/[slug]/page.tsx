@@ -31,7 +31,7 @@ export default async function Page({
             </article>
           ))}
         </div>
-        <Link className="mk-button" href="/studio">
+        <Link className="mk-button" href={slug === "qr-sharing" ? "/qr-studio" : "/studio"}>
           Open the studio ↗
         </Link>
         {slug === "contact" && (

@@ -13,7 +13,8 @@
     "test:integration": "node tests/integration.mjs",
     "check:auth": "node scripts/check-auth-setup.mjs",
     "account:link": "node scripts/link-legacy-account.mjs",
-    "start:local": "next start --hostname localhost --port 3000"
+    "start:local": "next start --hostname localhost --port 3000",
+    "cleanup:qr": "node scripts/cleanup-qr-assets.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "7.9.1",
@@ -26,7 +27,8 @@
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",
     "sharp": "0.35.4",
-    "zod": "4.5.4"
+    "zod": "4.5.4",
+    "jsqr": "1.4.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",
@@ -38,7 +40,6 @@
     "autoprefixer": "^10.4.20",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.4",
-    "jsqr": "1.4.0",
     "pngjs": "7.0.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",

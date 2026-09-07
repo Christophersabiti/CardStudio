@@ -8,7 +8,7 @@ export type PaymentProvider = "pesapal" | "paypal";
 export type SubscriptionStatus = "free" | "active" | "past_due" | "expired" | "canceled";
 export type PaymentStatus = "pending" | "completed" | "failed" | "invalid" | "reversed" | "refunded";
 export type UsageMetric = "active_cards" | "active_qr_codes" | "active_groups" | "storage_bytes" | "monthly_cards" | "monthly_qr_codes";
-export type QrContentType = "url" | "contact" | "wifi" | "email" | "phone" | "whatsapp" | "location" | "document" | "text";
+export type QrContentType = "event" | "links" | "image" | "video" | "url" | "contact" | "wifi" | "email" | "phone" | "whatsapp" | "location" | "document" | "text";
 export type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 
 export interface AppUser {
