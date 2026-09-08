@@ -11,7 +11,13 @@ const phone = text(40).refine(v => !v || /^[+\d][\d\s().#x-]{2,39}$/i.test(v), "
 export const mediaPath = /^\/api\/media\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const picture = z.string().max(550_000).refine(v => !v || mediaPath.test(v) || /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(v), "Choose a PNG, JPEG or WebP image.").default("");
 const socials = z.object(Object.fromEntries(["linkedin","twitter","facebook","instagram","youtube","tiktok","github","whatsapp"].map(k => [k, web.optional()]))).strict();
+const hexColor = z.string().regex(/^#[0-9a-f]{6}$/i, "Choose a six-digit hex color.");
+const cardAppearance = z.object({
+  mode: z.enum(["logo", "theme", "custom"]), primary: hexColor, secondary: hexColor,
+}).strict();
 export const cardSchema = z.object({
+  appearance: cardAppearance.optional(),
+  logoColors: z.tuple([hexColor, hexColor]).optional(),
   orientation: z.enum(["portrait","landscape"]).optional(),
   firstName: optionalText(100), lastName: optionalText(100), title: optionalText(160), organization: optionalText(160),
   phones: z.array(z.object({ type: z.enum(["CELL","WORK","HOME","WHATSAPP","OTHER"]), value: phone }).strict()).max(10).default([]),

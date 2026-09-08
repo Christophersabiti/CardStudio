@@ -45,6 +45,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
   const [consent,setConsent] = useState(false);
   const [qrMode,setQrMode] = useState<"dynamic"|"offline">(initial?.published?"dynamic":"offline");
   const [qrResult,setQrResult] = useState({payload:"",url:"",error:""});
+  const [previewAppearance, setPreviewAppearance] = useState<"system" | "light" | "dark">("system");
   const [origin,setOrigin] = useState("");
   const requestId = useRef<string>("");
   const completedNewDraft = useRef(false);
@@ -164,8 +165,12 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
       <div className="flex flex-col gap-4 lg:sticky lg:top-5 cs-stage-col">
         <div className="flex justify-between"><h2 className="font-bold">Live preview</h2><span className="text-xs cs-muted">Updates as you type</span></div>
         {kind==="cards"&&<div role="group" aria-label="Card orientation" className="flex gap-2">{(["landscape","portrait"] as const).map(o=><button key={o} className="cs-button" aria-pressed={((data as CardData).orientation||"landscape")===o} onClick={()=>setData(d=>({...d,orientation:o}))}>{o==="portrait"?"Portrait":"Landscape"}</button>)}</div>}
+        {kind==="cards" && <div className="flex flex-wrap gap-2 items-center" role="group" aria-label="Preview appearance">
+          <span className="text-xs cs-muted mr-1">Preview in</span>
+          {(["system", "light", "dark"] as const).map(mode => <button key={mode} type="button" className="cs-button" aria-pressed={previewAppearance === mode} onClick={() => setPreviewAppearance(mode)}>{mode === "system" ? "Device" : mode === "light" ? "Light" : "Dark"}</button>)}
+        </div>}
         <div className="cs-panel grid place-items-center"><CardFrame>
-          {kind==="cards"?<CardPreview data={data as CardData} qrUrl={qr} brand={brand} qrLabel={qrMode==="dynamic"?"Scan to view my profile":"Scan to save my contact"}/>:<GroupPreview data={data as GroupData} qrUrl={qr} brand={brand}/>}
+          {kind==="cards"?<CardPreview appearance={previewAppearance} data={data as CardData} qrUrl={qr} brand={brand} qrLabel={qrMode==="dynamic"?"Scan to view my profile":"Scan to save my contact"}/>:<GroupPreview data={data as GroupData} qrUrl={qr} brand={brand}/>}
         </CardFrame></div>
         {kind==="cards" && <div className="cs-panel text-sm flex flex-col gap-2">
           <label htmlFor="qr-type" className="font-semibold">QR type</label>

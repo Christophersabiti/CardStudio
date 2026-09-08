@@ -1,3 +1,8 @@
+"use client";
+
+import type { CSSProperties } from "react";
+import { cardColorVars, resolveCardColors } from "@/lib/card-colors";
+import { useLogoColors } from "@/lib/logo-colors-client";
 import type { CardData } from "@/lib/types";
 import type { Brand } from "@/lib/brand";
 import { SOCIALS } from "@/lib/socials";
@@ -17,20 +22,24 @@ function stripUrl(u: string): string {
 
 /**
  * Presentational business card. Used by both the builder preview (qrUrl computed
- * on the client) and the public page (qrUrl computed on the server). No hooks, so
- * it renders in either environment.
+ * on the client) and the public page (qrUrl computed on the server).
+ * Legacy logos are sampled on the client; new cards carry their saved palette.
  */
 export default function CardPreview({
   data,
   qrUrl,
   brand,
   qrLabel = "Scan to save my contact",
+  appearance = "system",
 }: {
   data: CardData;
   qrUrl: string;
   brand: Brand;
   qrLabel?: string;
+  appearance?: "system" | "light" | "dark";
 }) {
+  const detected = useLogoColors((data.appearance?.mode || "logo") === "logo" ? data.logo : "", data.logoColors);
+  const colors = resolveCardColors(data, detected);
   const name = `${data.firstName || ""} ${data.lastName || ""}`.trim();
   const phones = data.phones.filter((p) => p.value);
   const emails = data.emails.filter(Boolean);
@@ -38,6 +47,9 @@ export default function CardPreview({
 
   return (
     <div
+      style={cardColorVars(colors, brand) as CSSProperties}
+      data-appearance={appearance}
+      data-card-colors={colors ? (data.appearance?.mode || "logo") : "theme"}
       className={`cs-card ${data.orientation === "portrait" ? "cs-card-portrait" : "cs-card-landscape"}`}
     >
       <div className="cs-main">

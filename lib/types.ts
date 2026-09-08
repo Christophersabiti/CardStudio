@@ -26,6 +26,9 @@ export interface CardData {
   tagline: string;
   role: string; // membership / role line shown on the aside
   accent: AccentKey;
+  appearance?: { mode: "logo" | "theme" | "custom"; primary: string; secondary: string };
+  /** Extracted with the uploaded logo; absent for legacy cards. */
+  logoColors?: [string, string];
   /** data URL (MVP) or Supabase Storage URL (later). May be empty. */
   photo: string;
   /** Optional per-card logo, data URL. Replaces the brand badge in the card's corner when set. */

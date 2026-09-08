@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import CardAppearance from "./CardAppearance";
+import { readLogoColors } from "@/lib/logo-colors-client";
 import { prepareImage } from "@/lib/image-client";
 import type { CardData, Phone, PhoneType } from "@/lib/types";
 import { SOCIALS } from "@/lib/socials";
@@ -28,7 +30,11 @@ export default function BuilderForm({
   async function handleImage(file: File | undefined, field: "photo" | "logo") {
     if (!file) return;
     setImageError(""); setImageBusy(true);
-    try { patch({ [field]: await prepareImage(file, field === "logo" ? 160 : 420, field === "logo") }); }
+    try {
+      const image = await prepareImage(file, field === "logo" ? 160 : 420, field === "logo");
+      if (field === "logo") patch({ logo: image, logoColors: await readLogoColors(image) });
+      else patch({ photo: image });
+    }
     catch (e) { setImageError(e instanceof Error ? e.message : "Could not read this image."); }
     finally { setImageBusy(false); }
   }
@@ -160,7 +166,7 @@ export default function BuilderForm({
             {data.logo ? (
               <button
                 type="button"
-                onClick={() => patch({ logo: "" })}
+                onClick={() => patch({ logo: "", logoColors: undefined })}
                 className="text-xs text-left w-max cursor-pointer"
                 style={{ color: "var(--muted)" }}
               >
@@ -197,6 +203,8 @@ export default function BuilderForm({
             onChange={(e) => patch({ organization: e.target.value })} placeholder="Acme Inc." />
         </div>
       </Section>
+
+      <CardAppearance data={data} onChange={patch} />
 
       <Section n={2} title="Contact numbers">
         <div className="flex flex-col gap-2.5">
