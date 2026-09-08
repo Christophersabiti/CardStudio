@@ -15,6 +15,7 @@ export default function CardActions({
   qrUrl,
   fileBase,
   disabled = false,
+  publicCard = false,
   firstName,
   lastName,
   qrAccent,
@@ -23,12 +24,14 @@ export default function CardActions({
   qrUrl: string;
   fileBase: string;
   disabled?: boolean;
+  publicCard?: boolean;
   firstName: string;
   lastName: string;
   qrAccent: string;
 }) {
   const access = useExportAccess();
   const container = useRef<HTMLDivElement>(null);
+  const contactDisabled = disabled || (!publicCard && !access);
   disabled = disabled || !access;
   async function permitted() {
     if (disabled || !(await verifyExport())) {
@@ -49,7 +52,7 @@ export default function CardActions({
   }
 
   async function saveVcf() {
-    if (!(await permitted())) return;
+    if (contactDisabled || (!publicCard && !(await permitted()))) return;
     downloadBlob(
       `${fileBase}.vcf`,
       new Blob([vcard], { type: "text/vcard;charset=utf-8" }),
@@ -106,7 +109,9 @@ export default function CardActions({
     <div className="w-full" ref={container}>
       {!access && (
         <p className="text-sm cs-muted mb-3">
-          Sign in to save or download your card.{" "}
+          {publicCard
+            ? "Add this contact without signing in. Sign in for image exports or to copy the vCard."
+            : "Sign in to save or download your card."}{" "}
           <Link className="underline" href="/sign-in">
             Sign in
           </Link>
@@ -119,7 +124,7 @@ export default function CardActions({
             background: "var(--brand-primary)",
             borderColor: "var(--brand-primary)",
           }}
-          disabled={disabled}
+          disabled={contactDisabled}
           onClick={saveVcf}
         >
           Add to contacts

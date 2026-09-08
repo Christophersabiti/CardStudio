@@ -52,6 +52,7 @@ export default async function PublicCardPage({ params }: { params: Promise<{ slu
         </div>
 
         <CardActions
+          publicCard
           vcard={vcard}
           qrUrl={qr}
           fileBase={contactFileBase(card.data)}
@@ -63,9 +64,8 @@ export default async function PublicCardPage({ params }: { params: Promise<{ slu
         {!qr && <p role="alert" className="cs-error">The QR could not be generated. You can still download the contact file above.</p>}
 
         <Link
-          href="/"
-          className="text-sm font-semibold mt-2"
-          style={{ color: "var(--brand-primary-deep)" }}
+          href="/studio"
+          className="cs-button cs-primary w-full text-center mt-2 !py-4 !text-base shadow-lg"
         >
           Create your own card →
         </Link>

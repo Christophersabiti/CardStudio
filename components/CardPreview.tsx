@@ -65,7 +65,7 @@ export default function CardPreview({
               <span className="cs-ic">
                 <PhoneIcon />
               </span>
-              <span>{p.value}</span>
+              <a href={`tel:${p.value.replace(/[^+\d#x]/gi, "")}`} target="_blank" rel="noopener noreferrer">{p.value}</a>
             </div>
           ))}
           {emails.map((email, i) => (
@@ -73,7 +73,7 @@ export default function CardPreview({
               <span className="cs-ic">
                 <MailIcon />
               </span>
-              <span>{email}</span>
+              <a href={`mailto:${encodeURIComponent(email)}`} target="_blank" rel="noopener noreferrer">{email}</a>
             </div>
           ))}
           {websites.map((website, i) => (
@@ -81,7 +81,9 @@ export default function CardPreview({
               <span className="cs-ic">
                 <WebIcon />
               </span>
-              <span>{stripUrl(website)}</span>
+              {safeWebUrl(website) ? (
+                <a href={website} target="_blank" rel="noopener noreferrer">{stripUrl(website)}</a>
+              ) : <span>{stripUrl(website)}</span>}
             </div>
           ))}
         </div>
@@ -116,7 +118,7 @@ export default function CardPreview({
               >
                 <PinIcon />
               </span>
-              <span>{data.location}</span>
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.location)}`} target="_blank" rel="noopener noreferrer">{data.location}</a>
             </div>
           ) : null}
           {data.role ? (
