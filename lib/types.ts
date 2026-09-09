@@ -12,6 +12,8 @@ export type AccentKey = "primary" | "secondary" | "accent" | "ink";
  * (column `data`). Keep this in sync with the migration and the builder form.
  */
 export interface CardData {
+  /** Saved export preference; legacy cards default to the online profile QR. */
+  qrMode?: "dynamic" | "offline";
   orientation?: "portrait" | "landscape";
   firstName: string;
   lastName: string;

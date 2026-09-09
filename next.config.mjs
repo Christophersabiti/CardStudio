@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["sharp"],
+  outputFileTracingIncludes: {
+    "/api/cards/*/print-package": ["./assets/print-package/**/*", "./public/signature-icons/*.png", "./public/brands/*"],
+  },
   async headers() {
     return [{source:"/:path*",headers:[
       {key:"X-Content-Type-Options",value:"nosniff"},

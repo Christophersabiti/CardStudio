@@ -3,6 +3,7 @@ import { ArrowUpRightIcon } from "@/components/icons";
 
 import Link from "next/link";
 import { useState } from "react";
+import { hasPrintPackage } from "@/lib/print-package/policy";
 import type { Plan, Price } from "@/lib/billing/catalog";
 export type Presentation = {
   plan_id: string;
@@ -133,6 +134,7 @@ export default function PricingPlans({
                   {Math.round(p.storage_bytes / 1000000)} MB image storage
                 </li>
                 <li>Portrait and landscape layouts</li>
+                {hasPrintPackage(p.code) && <li>Print package: front, back, and mockup</li>}
                 <li>Private drafts and controlled publishing</li>
                 {meta?.features.map((feature,i)=><li key={i}>{feature}</li>)}
               </ul>
@@ -157,6 +159,7 @@ export default function PricingPlans({
             </tr>
           </thead>
           <tbody>
+            <tr><th>Print package (front, back, mockup)</th>{ordered.map(p => <td key={p.id}>{hasPrintPackage(p.code) ? "Included" : "—"}</td>)}</tr>
             {[
               ["Active cards", "active_cards"],
               ["New cards per month", "monthly_cards"],

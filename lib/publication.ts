@@ -7,3 +7,12 @@ export function sameContent(a: unknown,b: unknown): boolean {
   }
   return JSON.stringify(canonical(a))===JSON.stringify(canonical(b));
 }
+
+/** QR choice is an export preference, not a change to published contact details. */
+export function samePublishedContent(a: unknown, b: unknown): boolean {
+  const contact = (value: unknown) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+    return Object.fromEntries(Object.entries(value).filter(([key]) => key !== "qrMode"));
+  };
+  return sameContent(contact(a), contact(b));
+}

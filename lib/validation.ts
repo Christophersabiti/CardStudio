@@ -16,6 +16,7 @@ const cardAppearance = z.object({
   mode: z.enum(["logo", "theme", "custom"]), primary: hexColor, secondary: hexColor,
 }).strict();
 export const cardSchema = z.object({
+  qrMode: z.enum(["dynamic", "offline"]).default("dynamic"),
   appearance: cardAppearance.optional(),
   logoColors: z.tuple([hexColor, hexColor]).optional(),
   orientation: z.enum(["portrait","landscape"]).optional(),
