@@ -1,6 +1,6 @@
 # Print package
 
-The single-card editor offers **Download print package** for Basic and Premium (including an active trial of either plan). Free cannot use the protected export endpoint. Role labels do not bypass this entitlement. Existing QR, vCard, and digital-card exports are unchanged.
+The single-card editor offers **Download print package** for Basic and Premium (including an active trial of either plan). Free cannot use the protected export endpoint. Active super admins, verified from the internal account by the server, also receive access regardless of billing plan. Ordinary admins still require Basic/Premium. Ownership, session, revision, and publication checks apply to everyone. Existing QR, vCard, and digital-card exports are unchanged.
 
 The download is one ZIP with exactly `front.pdf`, `back.pdf`, and `mockup.png`. Front is the name/QR face; back is the profile/contact face, following the reference's labels. The back's scan-mode label and mockup footer follow the selected QR type. Each download regenerates every face from one saved revision. The reusable scene and fonts are bundled in `assets/print-package`; personal card contents are never baked into that template.
 
@@ -26,6 +26,8 @@ Online exports require a live published card whose contact data matches the save
 `POST /api/cards/[slug]/print-package` accepts only `{revision, preset}`. It checks origin, verified application identity, a six-per-minute export limit, owned record, effective plan, saved revision, publication, and bounded schema. The server resolves images via owner-filtered internal media IDs and reads the private bucket directly. No public export bucket, signed URLs, or client-provided card/QR image is used.
 
 After rendering, the service rechecks record revision/publication and effective plan. A failed render returns no ZIP. Responses use `private, no-store`; the ZIP is generated on demand and is not retained server-side. `GET /api/print-package/access` provides the matching UI capability and fails closed when plan verification is unavailable.
+
+The orientation controls include a shortcut to the print-package panel below the preview. Unsaved edits must still be saved, and Online details must be published before download.
 
 No schema migration is required. `effective_plan` remains the source of subscription/trial expiry behavior. Basic/Premium capability is centralized in `hasPrintPackage`. Adding a new eligible plan requires explicitly updating that capability.
 

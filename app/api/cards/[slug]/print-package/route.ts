@@ -29,7 +29,7 @@ export async function POST(req: Request, {params}: {params: Promise<{slug:string
         const record = await ownedRecord("cards",cardSlug,ownerId) as CardRecord | null;
         return record ? {...record,data:cardSchema.parse(record.data) as CardData} : null;
       },
-      allowed: async ownerId => (await printAccess(ownerId)).allowed,
+      allowed: async () => (await printAccess(user)).allowed,
       render: async (snapshot,preset,ownerId) => {
         const [photo,logo] = await Promise.all([ownedPrintImage(snapshot.data.photo,ownerId),snapshot.data.logo ? ownedPrintImage(snapshot.data.logo,ownerId) : brandPrintImage(activeBrand.logo)]);
         return (await renderPrintPackage({...snapshot,brand:activeBrand,photo,logo,preset})).zip;

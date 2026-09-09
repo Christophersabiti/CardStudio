@@ -5,6 +5,6 @@ export async function GET() {
   try {
     const user = await currentUser();
     if (!user) return jsonResponse({ allowed: false }, 401);
-    return jsonResponse(await printAccess(user.id));
+    return jsonResponse(await printAccess(user));
   } catch (error) { return errorResponse(error); }
 }

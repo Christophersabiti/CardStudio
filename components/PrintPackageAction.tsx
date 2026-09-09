@@ -51,7 +51,7 @@ export default function PrintPackageAction({ record, data, signedIn, disabled, d
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not download. Try again."); }
     finally { inFlight.current = false; setSaving(false); }
   }
-  return <section className="cs-panel flex flex-col gap-3" aria-label="Print package">
+  return <section id="print-package" className="cs-panel flex flex-col gap-3 scroll-mt-6" aria-label="Print package">
     <div><h2 className="font-bold">Print package</h2><p className="text-sm cs-muted">Front PDF, back PDF, and mockup PNG in one ZIP.</p></div>
     <p className="text-xs cs-muted">85.6 × 54 mm landscape · {mode === "dynamic" ? "Online profile QR" : "Offline contact QR"} · RGB artwork</p>
     {!signedIn ? <Link className="cs-button" href="/sign-in">Sign in for print packages</Link> : access === "denied" ? <><p className="text-sm cs-muted">Included with Basic and Premium.</p><Link className="cs-button cs-primary text-center" href="/pricing">Upgrade to download print package</Link></> : <>

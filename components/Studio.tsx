@@ -164,7 +164,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
       </fieldset>
       <div className="flex flex-col gap-4 lg:sticky lg:top-5 cs-stage-col">
         <div className="flex justify-between"><h2 className="font-bold">Live preview</h2><span className="text-xs cs-muted">Updates as you type</span></div>
-        {kind==="cards"&&<div role="group" aria-label="Card orientation" className="flex gap-2">{(["landscape","portrait"] as const).map(o=><button key={o} className="cs-button" aria-pressed={((data as CardData).orientation||"landscape")===o} onClick={()=>setData(d=>({...d,orientation:o}))}>{o==="portrait"?"Portrait":"Landscape"}</button>)}</div>}
+        {kind==="cards"&&<div role="group" aria-label="Card orientation" className="flex gap-2">{(["landscape","portrait"] as const).map(o=><button key={o} className="cs-button" aria-pressed={((data as CardData).orientation||"landscape")===o} onClick={()=>setData(d=>({...d,orientation:o}))}>{o==="portrait"?"Portrait":"Landscape"}</button>)}<a className="cs-button ml-auto" href="#print-package">Print package</a></div>}
         {kind==="cards" && <div className="flex flex-wrap gap-2 items-center" role="group" aria-label="Preview appearance">
           <span className="text-xs cs-muted mr-1">Preview in</span>
           {(["system", "light", "dark"] as const).map(mode => <button key={mode} type="button" className="cs-button" aria-pressed={previewAppearance === mode} onClick={() => setPreviewAppearance(mode)}>{mode === "system" ? "Device" : mode === "light" ? "Light" : "Dark"}</button>)}
