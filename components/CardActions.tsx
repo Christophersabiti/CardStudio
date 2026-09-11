@@ -7,6 +7,10 @@ import { downloadBlob } from "@/lib/download";
 import { saveCardAsPng } from "@/lib/captureCard";
 import { downloadQrCard } from "@/lib/downloadQrCard";
 
+import type { CardData } from "@/lib/types";
+import { isHexColor, resolveCardColors } from "@/lib/card-colors";
+import { readLogoColors } from "@/lib/logo-colors-client";
+
 const btn =
   "flex-1 min-w-[130px] inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold cursor-pointer transition border";
 
@@ -19,6 +23,7 @@ export default function CardActions({
   firstName,
   lastName,
   qrAccent,
+  data,
 }: {
   vcard: string;
   qrUrl: string;
@@ -28,6 +33,7 @@ export default function CardActions({
   firstName: string;
   lastName: string;
   qrAccent: string;
+  data: CardData;
 }) {
   const access = useExportAccess();
   const container = useRef<HTMLDivElement>(null);
@@ -64,11 +70,16 @@ export default function CardActions({
     if (!qrUrl) return;
     setSaving(true);
     try {
+      const detected = (data.appearance?.mode || "logo") === "logo" && data.logo && !data.logoColors
+        ? await readLogoColors(data.logo)
+        : undefined;
+      const colors = resolveCardColors(data, detected);
       await downloadQrCard({
         qrUrl,
         firstName,
         lastName,
-        accentColor: qrAccent,
+        accentColor: colors?.every(isHexColor) ? colors[0] : qrAccent,
+        photoUrl: data.photo,
         filename: `${fileBase}_QR.png`,
       });
       toast("Named QR image saved");

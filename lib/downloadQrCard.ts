@@ -24,6 +24,7 @@ function roundedRect(
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    image.crossOrigin = "anonymous";
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error("Could not load QR image"));
     image.src = src;
@@ -55,14 +56,19 @@ export async function downloadQrCard({
   lastName,
   accentColor,
   filename,
+  photoUrl,
 }: {
   qrUrl: string;
   firstName: string;
   lastName: string;
   accentColor: string;
   filename: string;
+  photoUrl?: string;
 }): Promise<void> {
-  const qrImage = await loadImage(qrUrl);
+  const [qrImage, photoImage] = await Promise.all([
+    loadImage(qrUrl),
+    photoUrl ? loadImage(photoUrl).catch(() => null) : Promise.resolve(null),
+  ]);
   const canvas = document.createElement("canvas");
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
@@ -90,7 +96,7 @@ export async function downloadQrCard({
   const lines = [given, family].filter(Boolean);
   const renderedLines = lines.length ? lines : ["Contact"];
   const nameX = 88;
-  const maxNameWidth = 544;
+  const maxNameWidth = photoImage ? 388 : 544;
   let nameY = renderedLines.length === 1 ? 112 : 78;
 
   ctx.fillStyle = "#262626";
@@ -99,9 +105,25 @@ export async function downloadQrCard({
     const weight = index === 0 ? 700 : 400;
     const fontSize = fitFontSize(ctx, line, weight, maxNameWidth);
     ctx.font = `${weight} ${fontSize}px Arial, Helvetica, sans-serif`;
-    ctx.fillText(line, nameX, nameY);
+    ctx.fillText(line, nameX, nameY, maxNameWidth);
     nameY += 54;
   });
+
+  if (photoImage) {
+    // Match object-fit: cover, with a circular crop beside the name.
+    const size = Math.min(photoImage.naturalWidth, photoImage.naturalHeight);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(566, 132, 66, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(
+      photoImage,
+      (photoImage.naturalWidth - size) / 2,
+      (photoImage.naturalHeight - size) / 2,
+      size, size, 500, 66, 132, 132,
+    );
+    ctx.restore();
+  }
 
   ctx.fillStyle = "#262626";
   roundedRect(ctx, nameX, 194, 150, 6, 3);

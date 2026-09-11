@@ -182,7 +182,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
         </div>}
         {(kind==="groups" || qrMode==="dynamic") && !matchesPublished && <p role="status" className="text-sm cs-muted">Publish the current details to enable the profile QR and sharing. Any existing public link still shows the last published version.</p>}
         {qrError && <p role="alert" className="cs-error">{qrError}</p>}
-        {kind==="cards"?<CardActions firstName={(data as CardData).firstName} lastName={(data as CardData).lastName} qrAccent={brand.colors.primary} vcard={vcard} qrUrl={qr} fileBase={contactFileBase(data as CardData)} disabled={!validated.success || busy}/>:<GroupActions vcard={vcard} qrUrl={qr} fileBase={groupFileBase(data as GroupData)} memberCount={(data as GroupData).members.length} disabled={!validated.success || busy}/>}
+        {kind==="cards"?<CardActions data={data as CardData} firstName={(data as CardData).firstName} lastName={(data as CardData).lastName} qrAccent={brand.colors.primary} vcard={vcard} qrUrl={qr} fileBase={contactFileBase(data as CardData)} disabled={!validated.success || busy}/>:<GroupActions vcard={vcard} qrUrl={qr} fileBase={groupFileBase(data as GroupData)} memberCount={(data as GroupData).members.length} disabled={!validated.success || busy}/>}
         {kind === "cards" && <PrintPackageAction record={record} data={data as CardData} signedIn={!!userId} disabled={busy || !ready || !validated.success} dirty={dirty} matchesPublished={matchesPublished} />}
         <div className="cs-panel flex flex-col gap-3">
           <h2 className="font-bold">Save and publish</h2>

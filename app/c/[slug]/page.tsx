@@ -53,6 +53,7 @@ export default async function PublicCardPage({ params }: { params: Promise<{ slu
 
         <CardActions
           publicCard
+          data={card.data}
           vcard={vcard}
           qrUrl={qr}
           fileBase={contactFileBase(card.data)}
