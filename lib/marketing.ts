@@ -18,6 +18,7 @@ export const navigation = {
     ["Group contacts", "A whole team in one shared link.", "group-contacts"],
     ["Event lead capture", "Explore our product roadmap.", "lead-capture"],
     ["Email signatures", "Your brand, in every inbox.", "email-signatures"],
+    ["Stamp maker", "Create a custom seal or document stamp.", "stamp-maker"],
   ],
   Resources: [
     ["Getting started", "From a blank canvas to your first card.", "guides"],
@@ -109,6 +110,11 @@ export const featureCopy: Record<
     title: "Make every email feel like you.",
     intro: "Create a signature, customize its design, and install it in your email app.",
     points: ["Add your contact details.", "Choose your layout, font and brand color.", "Copy and install with a guide for your email app."],
+  },
+  "stamp-maker": {
+    title: "A stamp that’s ready when your documents are.",
+    intro: "Choose a stamp design, edit the details and date, then download a transparent PNG for your documents.",
+    points: ["Start from company, professional and date stamp templates.", "Customize wording, shape, ink, borders and signature artwork.", "Save your design and export a crisp transparent PNG."],
   },
   guides: {
     title: "Meet your first digital card.",

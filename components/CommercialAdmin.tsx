@@ -137,12 +137,14 @@ export default function CommercialAdmin({
                 "active_qr_codes",
                 "monthly_cards",
                 "monthly_qr_codes",
+                "monthly_stamps",
                 "storage_bytes",
                 "amount_minor",
                 "currency_exponent",
               ])
                 body[k] = Number(body[k]);
               body.enabled = f.has("enabled");
+              body.effective_at = new Date(String(body.effective_at)).toISOString();
               void save({ action: "plan", body });
             }}
           >
@@ -175,6 +177,7 @@ export default function CommercialAdmin({
                 ["active_qr_codes", "Active standalone QR codes", 20],
                 ["monthly_cards", "Monthly new cards", 25],
                 ["monthly_qr_codes", "Monthly new QR codes", 100],
+                ["monthly_stamps", "Stamp generations per month (-1 = unlimited)", 5],
                 ["storage_bytes", "Storage in bytes", 50000000],
               ].map(([key, label, value]) => (
                 <label className="grid gap-1 text-sm" key={key}>
@@ -183,7 +186,7 @@ export default function CommercialAdmin({
                     className="cs-input"
                     type="number"
                     name={String(key)}
-                    min="0"
+                    min={String(key)==="monthly_stamps"?"-1":"0"}
                     required
                     defaultValue={value}
                   />
@@ -225,6 +228,10 @@ export default function CommercialAdmin({
               <label className="flex items-center gap-3">
                 <input type="checkbox" name="enabled" />
                 Enable this version
+              </label>
+              <label className="grid gap-1">
+                Effective from (your local time)
+                <input type="datetime-local" name="effective_at" className="cs-input" required defaultValue={new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)} />
               </label>
               <button className="cs-button cs-primary">
                 Create plan version

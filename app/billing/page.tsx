@@ -31,6 +31,9 @@ export default async function Billing() {
               access.
             </p>
             <div className="flex gap-3 mt-6">
+              <Link href="/admin?tab=stamp-plans" className="cs-button cs-primary">
+                E-stamp pricing & limits
+              </Link>
               <Link href="/admin?tab=plans" className="cs-button cs-primary">
                 Manage customer plans
               </Link>
@@ -43,7 +46,7 @@ export default async function Billing() {
       </>
     );
   const c = createAdminClient();
-  const [cat, e, s, t, usage, orders] = await Promise.all([
+  const [cat, e, s, t, usage, orders, profile] = await Promise.all([
     catalog(),
     c.rpc("effective_plan", { account_id: u.id }),
     c.from("subscriptions").select("*").eq("owner_id", u.id).single(),
@@ -55,10 +58,17 @@ export default async function Billing() {
       .eq("owner_id", u.id)
       .order("created_at", { ascending: false })
       .limit(30),
+    c.from("profiles").select("timezone").eq("user_id",u.id).maybeSingle(),
   ]);
-  if (e.error || s.error || t.error || usage.error || orders.error)
+  if (e.error || s.error || t.error || usage.error || orders.error || profile.error)
     throw Error("Billing unavailable");
-  const period = new Date().toISOString().slice(0, 7);
+  const zone=profile.data?.timezone||"UTC";
+  const periodParts=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit"}).formatToParts(new Date());
+  const period=`${periodParts.find(p=>p.type==="year")?.value}-${periodParts.find(p=>p.type==="month")?.value}`;
+  const [year,month]=period.split("-").map(Number),localMidnight=Date.UTC(year,month,1);
+  const resetParts=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date(localMidnight));
+  const part=(type:string)=>Number(resetParts.find(p=>p.type===type)?.value);
+  const nextReset=new Date(localMidnight-(Date.UTC(part("year"),part("month")-1,part("day"),part("hour"),part("minute"))-localMidnight));
   return (
     <>
       <Header brand={activeBrand} />
@@ -105,6 +115,7 @@ export default async function Billing() {
             ["active_cards", "Active cards"],
             ["active_groups", "Active groups"],
             ["monthly_cards", "Cards created this month"],
+            ["monthly_stamps", "E-stamp generations this month"],
             ["storage_bytes", "Image storage"],
           ].map(([metric, label]) => {
             const value = Number(
@@ -122,14 +133,15 @@ export default async function Billing() {
                 <p className="text-2xl font-semibold mt-3">
                   {metric === "storage_bytes"
                     ? `${(value / 1000000).toFixed(1)} / ${(cap / 1000000).toFixed(0)} MB`
-                    : `${value} / ${u.appRole === "superadmin" ? "Unlimited" : cap}`}
+                    : `${value} / ${u.appRole === "superadmin" || (metric === "monthly_stamps" && cap === -1) ? "Unlimited" : cap}`}
                 </p>
-                <progress
+                {!(metric === "monthly_stamps" && cap === -1) && <progress
                   aria-label={label}
                   className="w-full mt-3"
                   value={Math.min(value, cap)}
                   max={Math.max(1, cap)}
-                />
+                />}
+                {metric === "monthly_stamps" && <p className="text-xs cs-muted mt-2">{cap === -1 || u.appRole === "superadmin" ? "Unlimited remaining" : `${Math.max(0,cap-value)} generations remaining`} · Resets {nextReset.toLocaleString("en-GB",{timeZone:zone,dateStyle:"medium",timeStyle:"short"})} ({zone}).</p>}
               </section>
             );
           })}

@@ -19,13 +19,21 @@ export async function GET() {
         limits: {},
       });
     const c = createAdminClient();
-    const [cat, e, counts] = await Promise.all([
+    const [cat, e, counts, profile] = await Promise.all([
       catalog(),
       c.rpc("effective_plan", { account_id: u.id }),
       c.from("usage_counters").select("*").eq("owner_id", u.id),
+      c.from("profiles").select("timezone").eq("user_id",u.id).maybeSingle(),
     ]);
-    if (e.error || counts.error) throw Error();
-    const period = new Date().toISOString().slice(0, 7);
+    if (e.error || counts.error || profile.error) throw Error();
+    const zone=profile.data?.timezone||"UTC", now=new Date();
+    const parts=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit"}).formatToParts(now);
+    const period=`${parts.find(p=>p.type==="year")?.value}-${parts.find(p=>p.type==="month")?.value}`;
+    const [year,month]=period.split("-").map(Number), localMidnight=Date.UTC(year,month,1);
+    const resetParts=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date(localMidnight));
+    const part=(type:string)=>Number(resetParts.find(p=>p.type===type)?.value);
+    const offset=Date.UTC(part("year"),part("month")-1,part("day"),part("hour"),part("minute"))-localMidnight;
+    const reset=new Date(localMidnight-offset).toISOString();
     const usage = Object.fromEntries(
       counts.data
         .filter(
@@ -48,6 +56,7 @@ export async function GET() {
     );
     return jsonResponse({
       name: e.data.name,
+      timezone: zone,
       free: e.data.code === "free",
       usage,
       limits: e.data,
@@ -57,9 +66,7 @@ export async function GET() {
         pesapalReady() &&
         offers.length > 0 &&
         (e.data.code === "free" || result.nearing.length > 0),
-      reset: new Date(
-        Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, 1),
-      ).toISOString(),
+      reset,
     });
   } catch (e) {
     return errorResponse(e);
