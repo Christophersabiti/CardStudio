@@ -94,7 +94,7 @@ export default function Navigation() {
                     <span aria-hidden><ArrowUpRightIcon /></span>
                   </strong>
                   <small>{description}</small>
-                  {label === "Products" && <span className="mk-product-art" aria-hidden><span className="mk-mini-card"><i/><b/><b/><b/>{slug === "email-signatures" ? <em>Alex Morgan<br/>Creative Director</em> : <em>card studio ·</em>}</span><span className="mk-mini-badge">{slug === "email-signatures" ? "Email" : slug === "lead-capture" ? "Coming soon" : "Connect"}</span></span>}
+                  {label === "Products" && <span className="mk-product-art" aria-hidden><span className="mk-mini-card"><i/><b/><b/><b/>{slug === "email-signatures" ? <em>Alex Morgan<br/>Creative Director</em> : slug === "stamp-maker" ? <em>APPROVED<br/>15 NOV 2026</em> : <em>card studio ·</em>}</span><span className="mk-mini-badge">{slug === "email-signatures" ? "Email" : slug === "lead-capture" ? "Coming soon" : slug === "stamp-maker" ? "Create" : "Connect"}</span></span>}
                 </Link>
               ))}
             </div>

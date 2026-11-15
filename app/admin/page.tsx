@@ -26,6 +26,7 @@ export default async function Admin({
     ["accounts", "Accounts"],
     ["resources", "Cards & groups"],
     ["plans", "Plans & pricing"],
+    ["stamp-plans", "E-stamp pricing"],
     ["settings", "Settings"],
     ["orders", "Orders"],
     ["audit", "Activity"],
@@ -77,7 +78,7 @@ export default async function Admin({
       .range((page - 1) * 25, page * 25 - 1),
     c
       .from("admin_audit")
-      .select("id,action,target_id,created_at")
+      .select("id,actor_id,action,target_id,details,created_at")
       .order("created_at", { ascending: false })
       .range((page - 1) * 25, page * 25 - 1),
     c
@@ -128,6 +129,10 @@ export default async function Admin({
     plans: [
       "Plans & pricing",
       "Define customer plans and how they appear on your pricing page.",
+    ],
+    "stamp-plans": [
+      "E-stamp pricing and limits",
+      "Set monthly generation allowances and schedule e-stamp plan prices. A limit of -1 allows unlimited generations.",
     ],
     settings: [
       "Platform settings",
@@ -278,7 +283,7 @@ export default async function Admin({
           )}
           {tab === "plans" && (
             <>
-              <div className="admin-table-wrap mb-6"><table className="admin-table"><thead><tr><th>Customer plan</th><th>Active cards</th><th>Monthly creations</th><th>Storage</th><th>Catalog status</th></tr></thead><tbody>{cat.plans.map(p=><tr key={p.id}><td><strong>{p.name}</strong><small className="block cs-muted">Version {p.version}</small></td><td>{p.active_cards}</td><td>{p.monthly_cards}</td><td>{Math.round(p.storage_bytes/1000000)} MB</td><td><span className="admin-badge">{p.enabled?'Enabled':'Archived / disabled'}</span></td></tr>)}</tbody></table></div>
+              <div className="admin-table-wrap mb-6"><table className="admin-table"><thead><tr><th>Customer plan</th><th>Active cards</th><th>Monthly creations</th><th>Stamp generations / month</th><th>Storage</th><th>Effective</th><th>Catalog status</th></tr></thead><tbody>{cat.plans.map(p=><tr key={p.id}><td><strong>{p.name}</strong><small className="block cs-muted">Version {p.version}</small></td><td>{p.active_cards}</td><td>{p.monthly_cards}</td><td>{p.monthly_stamps===-1?'Unlimited':p.monthly_stamps}</td><td>{Math.round(p.storage_bytes/1000000)} MB</td><td>{new Date(p.effective_at).toLocaleString()}</td><td><span className="admin-badge">{p.enabled?'Enabled':'Archived / disabled'}</span></td></tr>)}</tbody></table></div>
               <details className="cs-panel mb-6">
                 <summary className="font-bold">
                   Create a customer plan version
@@ -292,6 +297,10 @@ export default async function Admin({
               />
             </>
           )}
+          {tab === "stamp-plans" && <>
+            <div className="admin-table-wrap mb-6"><table className="admin-table"><thead><tr><th>Plan</th><th>Monthly generations</th><th>Price</th><th>Interval</th><th>Effective</th><th>Enabled</th></tr></thead><tbody>{cat.plans.map(p=>{const price=cat.prices.filter(x=>x.plan_id===p.id).sort((a,b)=>b.effective_at.localeCompare(a.effective_at))[0];return <tr key={p.id}><td>{p.name} · v{p.version}</td><td>{p.monthly_stamps===-1?'Unlimited':p.monthly_stamps}</td><td>{price?money(price):'Included'}</td><td>{price?.interval||'—'}</td><td>{new Date(price?.effective_at||p.effective_at).toLocaleString()}</td><td>{p.enabled?'Enabled':'Disabled'}</td></tr>})}</tbody></table></div>
+            {commercial("plans")}
+          </>}
           {tab === "resources" && (
             <ResourceAdmin
               resources={[
@@ -348,6 +357,7 @@ export default async function Admin({
                       <th>When</th>
                       <th>Action</th>
                       <th>Target</th>
+                      <th>Admin / change details</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -360,6 +370,7 @@ export default async function Admin({
                         <td className="admin-identity">
                           {a.target_id || "Platform settings"}
                         </td>
+                        <td><span className="admin-identity">{a.actor_id}</span><details><summary>View recorded values</summary><pre className="text-xs whitespace-pre-wrap break-all">{JSON.stringify(a.details,null,2)}</pre></details></td>
                       </tr>
                     ))}
                   </tbody>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Shell from "@/components/marketing/Shell";
 import { featureCopy } from "@/lib/marketing";
+import StampMaker from "@/components/marketing/StampMaker";
 export function generateStaticParams() {
   return Object.keys(featureCopy).map((slug) => ({ slug }));
 }
@@ -14,6 +15,7 @@ export default async function Page({
 }) {
   const { slug } = await params;
   if (slug === "email-signatures") return <Shell><EmailSignature /></Shell>;
+  if (slug === "stamp-maker") return <Shell><StampMaker /></Shell>;
   const page = featureCopy[slug];
   if (!page) notFound();
   return (

@@ -11,7 +11,9 @@ export interface Plan {
   active_qr_codes: number;
   monthly_cards: number;
   monthly_qr_codes: number;
+  monthly_stamps: number;
   storage_bytes: number;
+  effective_at: string;
 }
 export interface Price {
   id: string;
@@ -21,6 +23,7 @@ export interface Price {
   amount_minor: number;
   interval: string;
   enabled: boolean;
+  effective_at: string;
 }
 export async function catalog(all = false) {
   const c = createAdminClient();
@@ -37,9 +40,13 @@ export async function catalog(all = false) {
   ]);
   if (p.error || v.error || s.error || meta.error)
     throw Error("Billing configuration unavailable");
+  const now=Date.now();
+  const plans=(p.data as Plan[]).filter(x=>all||new Date(x.effective_at).getTime()<=now);
+  const current=all?plans:plans.reduce((out,plan)=>{const old=out.find(x=>x.code===plan.code);if(!old)out.push(plan);else if(new Date(plan.effective_at).getTime()>new Date(old.effective_at).getTime()||(plan.effective_at===old.effective_at&&plan.version>old.version))out[out.indexOf(old)]=plan;return out;},[] as Plan[]);
+  const planIds=new Set(current.map(x=>x.id));
   return {
-    plans: p.data as Plan[],
-    prices: v.data as Price[],
+    plans: current,
+    prices: (v.data as Price[]).filter(x=>all||(planIds.has(x.plan_id)&&x.enabled&&new Date(x.effective_at).getTime()<=now)),
     settings: s.data,
     presentation: meta.data,
   };

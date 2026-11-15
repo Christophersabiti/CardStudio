@@ -163,6 +163,7 @@ export default function PricingPlans({
             {[
               ["Active cards", "active_cards"],
               ["New cards per month", "monthly_cards"],
+              ["Stamp generations per month", "monthly_stamps"],
               ["Active groups", "active_groups"],
               ["Storage (MB)", "storage_bytes"],
             ].map(([label, key]) => (
@@ -172,7 +173,9 @@ export default function PricingPlans({
                   <td key={p.id}>
                     {key === "storage_bytes"
                       ? Math.round(p.storage_bytes / 1000000)
-                      : p[key as keyof Plan]}
+                      : key === "monthly_stamps" && p.monthly_stamps === -1
+                        ? "Unlimited"
+                        : p[key as keyof Plan]}
                   </td>
                 ))}
               </tr>
