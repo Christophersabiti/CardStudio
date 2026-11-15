@@ -15,7 +15,9 @@ const free: Plan = {
   active_qr_codes: 1,
   monthly_cards: 10,
   monthly_qr_codes: 5,
+  monthly_stamps: 5,
   storage_bytes: 100,
+  effective_at: "2026-01-01T00:00:00.000Z",
 };
 const basic: Plan = {
   ...free,
