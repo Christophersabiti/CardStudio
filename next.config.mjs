@@ -4,6 +4,7 @@ const nextConfig = {
   serverExternalPackages: ["sharp"],
   outputFileTracingIncludes: {
     "/api/cards/*/print-package": ["./assets/print-package/**/*", "./public/signature-icons/*.png", "./public/brands/*"],
+    "/api/stamps/export": ["./assets/print-package/*.ttf"],
   },
   async headers() {
     return [{source:"/:path*",headers:[
