@@ -13,6 +13,7 @@ const item = z.object({
   signature: z.boolean().optional(), imageData: z.string().max(600_000).optional(),
   assetLabel: z.string().max(20).optional(), imageScale:z.number().min(.5).max(1.5).optional(),
   imageX:z.number().min(-80).max(80).optional(), imageFit:z.enum(["contain","cover"]).optional(),
+  dx:z.number().min(-220).max(220).optional(), dy:z.number().min(-220).max(220).optional(),
 }).strict();
 export const stampDesignSchema = z.object({
   title: z.string().trim().min(1).max(64),
@@ -62,7 +63,8 @@ export async function renderStampPng(design: StampDesign, owner: string) {
   for(const i of paths) assets.set(i.id,await imageAsData(i.imageData!,owner));
   const top="M 100 205 Q 250 112 400 205", bottom="M 100 295 Q 250 388 400 295";
   const dash=design.borderStyle==="Dotted, office"?"1 7":design.borderStyle==="Serrated, notary"?"2 3":"";
-  const text=design.items.map(i=>{
+  const text=design.items.map(i=>`<g transform="translate(${i.dx||0} ${i.dy||0})">${element(i)}</g>`).join("");
+  function element(i:StampDesign["items"][number]){
     const y=i.place==="top"?190:i.place==="bottom"?310:250;
     const fontSize=Math.max(10.2,Math.min(i.size*1.7,(i.curved?300:400)/Math.max(i.text.length*.6,1)));
     const ink=i.color||design.color;
@@ -71,7 +73,7 @@ export async function renderStampPng(design: StampDesign, owner: string) {
     const content=esc(i.text), font=esc(i.font);
     if(i.curved&&i.place!=="center") return `<text fill="${ink}" font-family="${font}" font-weight="${i.bold?700:400}" font-size="${fontSize}" letter-spacing="${i.letterSpacing*1.4}" text-anchor="middle"><textPath href="#${i.place==="top"?"top":"bottom"}" startOffset="50%">${content}</textPath></text>`;
     return `<text x="250" y="${y}" fill="${ink}" font-family="${font}" font-weight="${i.bold?700:400}" font-size="${fontSize}" letter-spacing="${i.letterSpacing*1.4}" text-anchor="middle" dominant-baseline="middle">${content}</text>`;
-  }).join("");
+  }
   const rings=`<g fill="none" stroke="${design.color}" stroke-width="${design.border}" ${dash?`stroke-dasharray="${dash}"`:""}>${shape(design.shape,0)}${design.borderStyle!=="Plain"?`<g opacity=".85">${shape(design.shape,11)}</g>`:""}${design.borderStyle.includes("triple")?`<g opacity=".65">${shape(design.shape,19)}</g>`:""}</g>`;
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><defs><path id="top" d="${top}"/><path id="bottom" d="${bottom}"/></defs><g opacity="${1-design.aging*.004}">${rings}${text}</g></svg>`;
   return sharp(Buffer.from(svg)).resize(1500,1500).png().toBuffer();
