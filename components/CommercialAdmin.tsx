@@ -28,6 +28,8 @@ export default function CommercialAdmin({
 }) {
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
+  // Read the clock once, not on every render.
+  const [localNow] = useState(() => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16));
   const router = useRouter();
   async function save(payload: unknown) {
     setBusy(true);
@@ -231,7 +233,7 @@ export default function CommercialAdmin({
               </label>
               <label className="grid gap-1">
                 Effective from (your local time)
-                <input type="datetime-local" name="effective_at" className="cs-input" required defaultValue={new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)} />
+                <input type="datetime-local" name="effective_at" className="cs-input" required defaultValue={localNow} />
               </label>
               <button className="cs-button cs-primary">
                 Create plan version

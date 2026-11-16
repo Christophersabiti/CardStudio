@@ -23,7 +23,7 @@ export function readable(seed: string, backgrounds: string[], dark: boolean): st
 }
 
 /** Reduce vivid chroma before deriving broad surfaces; retain the logo's hue. */
-export function soften(color: string): string {
+function soften(color: string): string {
   const channels = rgb(color);
   const mid = (Math.max(...channels) + Math.min(...channels)) / 2;
   return hex(channels.map(v => mid + (v - mid) * .58));

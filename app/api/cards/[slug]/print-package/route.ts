@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { currentUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/session";
 import { activeBrand } from "@/lib/brand";
 import { checkOrigin, errorResponse, HttpError, jsonResponse, readJson } from "@/lib/http";
 import { ownedRecord } from "@/lib/records";
@@ -18,8 +18,7 @@ const requestSchema = z.object({revision:z.number().int().nonnegative(),preset:z
 export async function POST(req: Request, {params}: {params: Promise<{slug:string}>}) {
   try {
     checkOrigin(req);
-    const user = await currentUser();
-    if(!user) throw new HttpError(401,"Sign in to download a print package.");
+    const user = await requireUser("Sign in to download a print package.");
     await rateLimit(user.id,"print-package",6);
     const {slug} = await params;
     const raw = await readJson(req,2048);

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { currentUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
   checkOrigin,
@@ -13,8 +13,7 @@ import { pesapalReady, submitOrder } from "@/lib/billing/pesapal";
 export async function POST(req: Request) {
   try {
     checkOrigin(req);
-    const user = await currentUser();
-    if (!user) throw new HttpError(401, "Sign in to continue.");
+    const user = await requireUser("Sign in to continue.");
     if(user.appRole==="superadmin")throw new HttpError(409,"Superadmin has unlimited access and does not need a subscription or trial.");
     await rateLimit(user.id, "checkout", 5, 60);
     if (!pesapalReady())

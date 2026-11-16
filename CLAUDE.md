@@ -20,13 +20,15 @@ it creates and removes synthetic test accounts, without sending email.
 
 - `lib/auth/session.ts` verifies Clerk identity, live session/account status and
   the internal UUID mapping. Every private handler independently checks identity.
-  `lib/supabase/session.ts` passes Clerk JWTs to owner-scoped database reads.
+  All server database access uses the admin client and filters by the verified owner.
+  Use `requireUser()` in API handlers and `needsOnboarding()` for the plan gate.
   Never derive ownership or admin roles from client-supplied metadata.
 - `lib/supabase/server.ts` is privileged and `server-only`. Every mutation must
   filter by the verified `owner_id`, not a client-provided ID or email. Never
   import the admin client into client components.
-- Browser database clients have owner-scoped SELECT only. INSERT/UPDATE/DELETE
-  are revoked so they cannot bypass validation, origin checks and rate limiting.
+- The app creates no browser database client. Database grants still limit a
+  Clerk-token client to owner-scoped SELECT; INSERT/UPDATE/DELETE are revoked so
+  nothing can bypass validation, origin checks and rate limiting.
 - `data` is a private draft. Public pages must read only `published_data` where
   `published=true` and `deleted_at IS NULL`. Do not use `data` on public pages.
 - Save draft leaves the published snapshot unchanged. Publish updates replaces
@@ -39,9 +41,8 @@ it creates and removes synthetic test accounts, without sending email.
   visible contact details do not prove ownership.
 - The database rate limiter is shared across serverless instances, atomically
   updated and callable only by the service role. Fail closed when unavailable.
-- Keep arbitrary forwarding headers out of authentication/rate-limit decisions.
-  Vercel's overwritten header is explicitly trusted; other hosts require their
-  own verified proxy configuration.
+- Rate limits are keyed by the verified user ID. Keep forwarding headers out of
+  authentication/rate-limit decisions.
 
 ## Data and UI
 
@@ -89,3 +90,13 @@ read behavior over data containing private drafts.
 The webpack symlink workaround remains for Parallels/shared-folder compatibility.
 Scripts explicitly use webpack. If a shared-filesystem build fails with EISDIR,
 verify on a native filesystem; do not redesign the app around that environment.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

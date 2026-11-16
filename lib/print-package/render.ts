@@ -11,7 +11,7 @@ import type { Brand } from "../brand";
 import { extractLogoColors, mix, readable, resolveCardColors } from "../card-colors";
 import { PrintError, type PrintPreset } from "./policy";
 
-export const TEMPLATE_VERSION = "reference-v1";
+const TEMPLATE_VERSION = "reference-v1";
 export const CARD_WIDTH = 85.6, CARD_HEIGHT = 54;
 const PT = 72 / 25.4;
 const assets = (name: string) => path.join(process.cwd(), "assets", "print-package", name);

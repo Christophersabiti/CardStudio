@@ -1,12 +1,10 @@
 import { ArrowUpRightIcon } from "@/components/icons";
-import EmailSignature from "@/components/marketing/EmailSignature";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Shell from "@/components/marketing/Shell";
-import { featureCopy } from "@/lib/marketing";
-import StampMaker from "@/components/marketing/StampMaker";
+import { featureCopy, featureHref } from "@/lib/marketing";
 export function generateStaticParams() {
-  return Object.keys(featureCopy).map((slug) => ({ slug }));
+  return Object.keys(featureCopy).filter((slug) => featureHref(slug) === `/explore/${slug}`).map((slug) => ({ slug }));
 }
 export default async function Page({
   params,
@@ -14,8 +12,7 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  if (slug === "email-signatures") return <Shell><EmailSignature /></Shell>;
-  if (slug === "stamp-maker") return <Shell><StampMaker /></Shell>;
+  if (featureHref(slug) !== `/explore/${slug}`) redirect(featureHref(slug));
   const page = featureCopy[slug];
   if (!page) notFound();
   return (

@@ -1,7 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
-import { currentUser } from "@/lib/auth/session";
+import { needsOnboarding, requireUser } from "@/lib/auth/session";
 import { publicOwnerActive } from "@/lib/public-access";
 import {
   checkOrigin,
@@ -21,9 +21,8 @@ import {
 } from "./schema";
 export const slugSchema = z.string().regex(/^[A-Za-z0-9_-]{8,64}$/);
 export async function requireQrUser() {
-  const user = await currentUser();
-  if (!user) throw new HttpError(401, "Sign in to manage QR codes.");
-  if (user.appRole !== "superadmin" && !user.onboardingComplete)
+  const user = await requireUser("Sign in to manage QR codes.");
+  if (needsOnboarding(user))
     throw new HttpError(409, "Choose a plan before saving.");
   return user;
 }

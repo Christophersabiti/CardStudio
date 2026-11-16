@@ -10,7 +10,3 @@ export async function rateLimit(subject: string, scope: string, limit: number, s
   if (error) throw new Error("Rate limit unavailable"); // Fail closed.
   if (!data) throw new HttpError(429, "Too many requests. Please wait and try again.", seconds);
 }
-export function requestAddress(req: Request) {
-  // Vercel overwrites this header. Never trust arbitrary x-forwarded-for on other hosts.
-  return process.env.VERCEL ? (req.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || "unknown") : "local-or-self-hosted";
-}
