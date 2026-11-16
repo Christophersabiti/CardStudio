@@ -172,18 +172,6 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
         <div className="cs-panel grid place-items-center"><CardFrame>
           {kind==="cards"?<CardPreview appearance={previewAppearance} data={data as CardData} qrUrl={qr} brand={brand} qrLabel={qrMode==="dynamic"?"Scan to view my profile":"Scan to save my contact"}/>:<GroupPreview data={data as GroupData} qrUrl={qr} brand={brand}/>}
         </CardFrame></div>
-        {kind==="cards" && <div className="cs-panel text-sm flex flex-col gap-2">
-          <label htmlFor="qr-type" className="font-semibold">QR type</label>
-          <select id="qr-type" className="cs-input" value={qrMode} disabled={busy || !ready} onChange={e=>setData(current=>({...current,qrMode:e.target.value as "dynamic"|"offline"}))}>
-            <option value="offline">Offline contact QR · fixed snapshot</option>
-            <option value="dynamic">Online profile QR · stays up to date (default)</option>
-          </select>
-          <p className="cs-muted">{qrMode==="offline"?"Works without internet. Downloaded codes and contact files cannot be updated or revoked.":"Opens your published profile online. The same QR shows future published updates."}</p>
-        </div>}
-        {(kind==="groups" || qrMode==="dynamic") && !matchesPublished && <p role="status" className="text-sm cs-muted">Publish the current details to enable the profile QR and sharing. Any existing public link still shows the last published version.</p>}
-        {qrError && <p role="alert" className="cs-error">{qrError}</p>}
-        {kind==="cards"?<CardActions data={data as CardData} firstName={(data as CardData).firstName} lastName={(data as CardData).lastName} qrAccent={brand.colors.primary} vcard={vcard} qrUrl={qr} fileBase={contactFileBase(data as CardData)} disabled={!validated.success || busy}/>:<GroupActions vcard={vcard} qrUrl={qr} fileBase={groupFileBase(data as GroupData)} memberCount={(data as GroupData).members.length} disabled={!validated.success || busy}/>}
-        {kind === "cards" && <PrintPackageAction record={record} data={data as CardData} signedIn={!!userId} disabled={busy || !ready || !validated.success} dirty={dirty} matchesPublished={matchesPublished} />}
         <div className="cs-panel flex flex-col gap-3">
           <h2 className="font-bold">Save and publish</h2>
           {!userId?<><p className="text-sm cs-muted">Your draft is saved in this browser. Sign in to save it online, publish a link, and make updates later.</p><Link className="cs-button cs-primary text-center" href={`/login?next=${encodeURIComponent(`/studio?mode=${kind}`)}`}>Sign in to save</Link></>:<>
@@ -201,6 +189,18 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
           {error && <p role="alert" className="cs-error">{error}{error.includes("plan limit")&&<Link href="/pricing" className="cs-button ml-3">Upgrade plan</Link>}</p>}
           {kind==="groups" && <p className="text-xs cs-muted">Contact-import steps vary by phone. Downloading a file does not confirm that every contact was added.</p>}
         </div>
+        {kind==="cards" && <div className="cs-panel text-sm flex flex-col gap-2">
+          <label htmlFor="qr-type" className="font-semibold">QR type</label>
+          <select id="qr-type" className="cs-input" value={qrMode} disabled={busy || !ready} onChange={e=>setData(current=>({...current,qrMode:e.target.value as "dynamic"|"offline"}))}>
+            <option value="offline">Offline contact QR · fixed snapshot</option>
+            <option value="dynamic">Online profile QR · stays up to date (default)</option>
+          </select>
+          <p className="cs-muted">{qrMode==="offline"?"Works without internet. Downloaded codes and contact files cannot be updated or revoked.":"Opens your published profile online. The same QR shows future published updates."}</p>
+        </div>}
+        {(kind==="groups" || qrMode==="dynamic") && !matchesPublished && <p role="status" className="text-sm cs-muted">Publish the current details to enable the profile QR and sharing. Any existing public link still shows the last published version.</p>}
+        {qrError && <p role="alert" className="cs-error">{qrError}</p>}
+        {kind==="cards"?<CardActions data={data as CardData} firstName={(data as CardData).firstName} lastName={(data as CardData).lastName} qrAccent={brand.colors.primary} vcard={vcard} qrUrl={qr} fileBase={contactFileBase(data as CardData)} disabled={!validated.success || busy}/>:<GroupActions vcard={vcard} qrUrl={qr} fileBase={groupFileBase(data as GroupData)} memberCount={(data as GroupData).members.length} disabled={!validated.success || busy}/>}
+        {kind === "cards" && <PrintPackageAction record={record} data={data as CardData} signedIn={!!userId} disabled={busy || !ready || !validated.success} dirty={dirty} matchesPublished={matchesPublished} />}
       </div>
     </div>
   </>;

@@ -1,4 +1,4 @@
-import { currentUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import { catalog } from "@/lib/billing/catalog";
 import {
@@ -12,8 +12,7 @@ import { z } from "zod";
 export async function POST(req: Request) {
   try {
     checkOrigin(req);
-    const u = await currentUser();
-    if (!u) throw new HttpError(401, "Sign in.");
+    const u = await requireUser("Sign in.");
     const b = z
       .object({ plan: z.literal("free") })
       .parse(await readJson(req, 1024));

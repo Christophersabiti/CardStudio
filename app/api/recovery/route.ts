@@ -1,4 +1,4 @@
-import { currentUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
   checkOrigin,
@@ -14,8 +14,7 @@ const keySchema = z
   .regex(/^(cards|groups):(new|[A-Za-z0-9_-]{6,40})$/);
 export async function GET(req: Request) {
   try {
-    const u = await currentUser();
-    if (!u) throw new HttpError(401, "Sign in.");
+    const u = await requireUser("Sign in.");
     const key = keySchema.parse(new URL(req.url).searchParams.get("key"));
     const r = await createAdminClient()
       .from("draft_recovery")
@@ -32,8 +31,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     checkOrigin(req);
-    const u = await currentUser();
-    if (!u) throw new HttpError(401, "Sign in.");
+    const u = await requireUser("Sign in.");
     const b = z
       .object({
         key: keySchema,
@@ -77,8 +75,7 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   try {
     checkOrigin(req);
-    const u = await currentUser();
-    if (!u) throw new HttpError(401, "Sign in.");
+    const u = await requireUser("Sign in.");
     const key = keySchema.parse(new URL(req.url).searchParams.get("key"));
     const r = await createAdminClient()
       .from("draft_recovery")

@@ -3,11 +3,11 @@ import {redirect} from "next/navigation";
 import Header from "@/components/Header";
 import Studio from "@/components/Studio";
 import { activeBrand } from "@/lib/brand";
-import { currentUser } from "@/lib/auth/session";
+import { currentUser, needsOnboarding } from "@/lib/auth/session";
 
 export default async function Home({searchParams}:{searchParams:Promise<{mode?:string}>}) {
   const user = await currentUser();
-  if(user&&user.appRole!=="superadmin"&&!user.onboardingComplete)redirect("/onboarding");
+  if(user&&needsOnboarding(user))redirect("/onboarding");
   const mode = (await searchParams).mode;
   return (
     <>

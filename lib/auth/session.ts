@@ -15,6 +15,16 @@ export interface SessionUser {
   onboardingComplete: boolean;
 }
 
+/** Paid-plan choice is required before a member's first save; superadmins are exempt. */
+export const needsOnboarding = (user: SessionUser) => user.appRole !== "superadmin" && !user.onboardingComplete;
+
+/** For API handlers: the verified user, or a 401 with the caller's wording. */
+export async function requireUser(message = "Sign in to continue."): Promise<SessionUser> {
+  const user = await currentUser();
+  if (!user) throw new HttpError(401, message);
+  return user;
+}
+
 /** Per-request memoization only. Never cache identity across users/requests. */
 export const currentUser = cache(async (): Promise<SessionUser | null> => {
   if (!isClerkConfigured()) return null;

@@ -8,8 +8,8 @@ export const qrTypes = [
   "video",
   "url",
 ] as const;
-export const assetRef = z.string().regex(/^\/api\/qr-assets\/[0-9a-f-]{36}$/);
-export const webUrl = z
+const assetRef = z.string().regex(/^\/api\/qr-assets\/[0-9a-f-]{36}$/);
+const webUrl = z
   .url()
   .max(2000)
   .refine((value) => {

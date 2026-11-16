@@ -1,7 +1,7 @@
 import "server-only";
 import type { CardData, RecordKind, StudioRecord } from "./types";
 import { createAdminClient } from "./supabase/server";
-import { currentUser } from "./auth/session";
+import { needsOnboarding, requireUser } from "./auth/session";
 import { cardSchema, groupSchema, createSchema, updateSchema, slugSchema } from "./validation";
 import { checkOrigin, errorResponse, HttpError, jsonResponse, readJson } from "./http";
 import { rateLimit } from "./rate-limit";
@@ -27,9 +27,8 @@ function requireConsent(kind: RecordKind, consent: boolean) {
 export async function recordEndpoint(req: Request, kind: RecordKind, slug?: string) {
   try {
     checkOrigin(req);
-    const user = await currentUser();
-    if(user&&user.appRole!=="superadmin"&&!user.onboardingComplete)throw new HttpError(409,"Choose a plan before saving your first card.");
-    if (!user) throw new HttpError(401,"Sign in to save and manage your cards.");
+    const user = await requireUser("Sign in to save and manage your cards.");
+    if (needsOnboarding(user)) throw new HttpError(409,"Choose a plan before saving your first card.");
     await rateLimit(user.id,"record-write",30);
     const raw = await readJson(req);
     const client = createAdminClient();

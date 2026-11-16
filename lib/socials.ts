@@ -30,5 +30,3 @@ export const SOCIALS: SocialPlatform[] = [
   { key: "whatsapp", name: "WhatsApp", icon: WhatsAppIcon, color: "#25D366", placeholder: "wa.me/256…" },
   { key: "github", name: "GitHub", icon: GitHubIcon, color: "#111111", placeholder: "github.com/…" },
 ];
-
-export const socialByKey = (key: string) => SOCIALS.find((s) => s.key === key);

@@ -1,4 +1,4 @@
-import { currentUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import { errorResponse, HttpError, jsonResponse, checkOrigin, readJson } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
@@ -8,7 +8,7 @@ import { storeImage } from "@/lib/media";
 export const runtime="nodejs";
 export async function GET(){
   try{
-    const user=await currentUser(); if(!user) throw new HttpError(401,"Sign in to access saved stamp designs.");
+    const user = await requireUser("Sign in to access saved stamp designs.");
     const {data,error}=await createAdminClient().from("stamp_designs").select("id,name,design,revision,updated_at").eq("owner_id",user.id).is("deleted_at",null).order("updated_at",{ascending:false});
     if(error) throw error;
     return jsonResponse({designs:data});
@@ -16,7 +16,7 @@ export async function GET(){
 }
 export async function POST(req:Request){
   try{
-    checkOrigin(req); const user=await currentUser(); if(!user) throw new HttpError(401,"Sign in to save a reusable stamp design.");
+    checkOrigin(req); const user = await requireUser("Sign in to save a reusable stamp design.");
     await rateLimit(user.id,"stamp-design-save",30,60);
     const body=stampSaveSchema.parse(await readJson(req,750_000));
     const c=createAdminClient();
@@ -36,7 +36,7 @@ export async function POST(req:Request){
 }
 export async function DELETE(req:Request){
   try{
-    checkOrigin(req); const user=await currentUser(); if(!user) throw new HttpError(401,"Sign in to manage saved stamp designs.");
+    checkOrigin(req); const user = await requireUser("Sign in to manage saved stamp designs.");
     const id=new URL(req.url).searchParams.get("id"); if(!id) throw new HttpError(400,"Choose a saved design.");
     await rateLimit(user.id,"stamp-design-delete",30,60);
     const {data,error}=await createAdminClient().from("stamp_designs").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("owner_id",user.id).is("deleted_at",null).select("id").maybeSingle();

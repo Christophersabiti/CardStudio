@@ -10,7 +10,10 @@ export default function Header({ brand }: { brand: Brand }) {
       style={{ background: "var(--surface)", borderColor: "var(--line)" }}
     >
       <Link href="/" className="flex items-center gap-3 min-w-0 no-underline" style={{ color: "var(--ink)" }}>
-        {brand.logo ? (
+        {brand.key === "neutral" ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src="/brand/icon-192.png" alt="" width={36} height={36} className="rounded-lg" />
+        ) : brand.logo ? (
           <span className="bg-white rounded-lg px-2 py-1.5 flex shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={brand.logo} alt={brand.name} className="h-6 w-auto block" />
@@ -33,6 +36,9 @@ export default function Header({ brand }: { brand: Brand }) {
       <nav className="ml-auto flex flex-wrap items-center gap-3 text-sm font-semibold" aria-label="Main navigation">
         <Link href="/studio">Create card</Link>
         <Link href="/qr-studio">QR Studio</Link>
+        <Link href="/stamp-maker">Stamp maker</Link>
+        <Link href="/email-signature">Email signature</Link>
+        <Link href="/pricing">Pricing</Link>
         {isClerkConfigured() ? <AuthControls/> : <Link href="/sign-in">Sign in</Link>}
       </nav>
     </header>

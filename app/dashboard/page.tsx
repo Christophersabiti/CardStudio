@@ -5,7 +5,7 @@ import Dashboard from "@/components/Dashboard";
 import UsageBanner from "@/components/UsageBanner";
 import { activeBrand } from "@/lib/brand";
 import { createAdminClient } from "@/lib/supabase/server";
-import { currentUser } from "@/lib/auth/session";
+import { currentUser, needsOnboarding } from "@/lib/auth/session";
 import { isAdministrator } from "@/lib/roles";
 export default async function DashboardPage({
   searchParams,
@@ -19,7 +19,7 @@ export default async function DashboardPage({
 }) {
   const user = await currentUser();
   if (!user) redirect("/login?next=/dashboard");
-  if (user.appRole!=="superadmin"&&!user.onboardingComplete) redirect("/onboarding");
+  if (needsOnboarding(user)) redirect("/onboarding");
   const params = await searchParams;
   const page = Math.max(1, Math.min(10000, parseInt(params.page || "1") || 1));
   const query = (params.q || "").trim().slice(0, 120);

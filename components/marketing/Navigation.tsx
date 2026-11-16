@@ -5,8 +5,9 @@ import { MailIcon, UsersIcon, ScanIcon } from "@/components/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { navigation } from "@/lib/marketing";
-export default function Navigation() {
+import { featureHref, navigation } from "@/lib/marketing";
+import { AccountLink } from "@/components/AuthControls";
+export default function Navigation({ authEnabled = false }: { authEnabled?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState<string | null>(null),
     [mobile, setMobile] = useState(false);
@@ -40,9 +41,8 @@ export default function Navigation() {
       }}
     >
       <Link className="mk-logo" href="/" aria-label="Card Studio home">
-        <span>
-          c<span>·</span>
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/icon-192.png" alt="" width={37} height={37} style={{ borderRadius: 10 }} />
         card studio
       </Link>
       <button
@@ -79,10 +79,10 @@ export default function Navigation() {
               <p className="mk-eyebrow">Explore {label.toLowerCase()}</p>
               {links.map(([title, description, slug]) => (
                 <Link
-                  href={`/explore/${slug}`}
+                  href={featureHref(slug)}
                   key={slug}
                   data-product={slug}
-                  aria-current={pathname === `/explore/${slug}` || (slug === "email-signatures" && pathname === "/email-signature") ? "page" : undefined}
+                  aria-current={pathname === featureHref(slug) ? "page" : undefined}
                   onClick={() => {
                     setOpen(null);
                     setMobile(false);
@@ -102,7 +102,7 @@ export default function Navigation() {
         ))}
         <Link href="/pricing">Pricing</Link>
         <div className="mk-nav-actions">
-          <Link href="/sign-in">Sign in</Link>
+          {authEnabled ? <AccountLink /> : <Link href="/sign-in">Sign in</Link>}
           <Link href="/studio" className="mk-button">
             Create your card <span aria-hidden><ArrowUpRightIcon /></span>
           </Link>

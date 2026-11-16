@@ -31,6 +31,9 @@ export const navigation = {
     ["Careers", "Build better ways to connect.", "careers"],
   ],
 } as const;
+/** Tools live at short addresses; every other entry is an /explore page. */
+const toolPaths: Record<string, string> = { "email-signatures": "/email-signature", "stamp-maker": "/stamp-maker" };
+export const featureHref = (slug: string) => toolPaths[slug] || `/explore/${slug}`;
 export const featureCopy: Record<
   string,
   { title: string; intro: string; points: string[]; planned?: boolean }

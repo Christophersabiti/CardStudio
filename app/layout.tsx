@@ -7,8 +7,12 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { isClerkConfigured } from "@/lib/auth/config";
 
 export const metadata: Metadata = {
-  title: `${activeBrand.name} · Card Studio`,
+  title: activeBrand.name === "Card Studio" ? "Card Studio" : `${activeBrand.name} · Card Studio`,
   description: activeBrand.tagline,
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "32x32" }, { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/brand/icon-180.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Navigation from "./Navigation";
-import { navigation } from "@/lib/marketing";
+import { featureHref, navigation } from "@/lib/marketing";
+import { isClerkConfigured } from "@/lib/auth/config";
 import "./marketing.css";
 export default function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -8,12 +9,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <a className="mk-skip" href="#main-content">
         Skip to content
       </a>
-      <Navigation />
+      <Navigation authEnabled={isClerkConfigured()} />
       {children}
       <footer className="mk-footer">
         <div>
           <Link className="mk-logo" href="/">
-            card studio<span>·</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/icon-192.png" alt="" width={37} height={37} style={{ borderRadius: 10 }} />
+            card studio
           </Link>
           <p>
             Make the introduction.
@@ -25,7 +28,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <div key={label}>
             <h2>{label}</h2>
             {links.map(([title, , slug]) => (
-              <Link key={slug} href={`/explore/${slug}`}>
+              <Link key={slug} href={featureHref(slug)}>
                 {title}
               </Link>
             ))}

@@ -2,7 +2,7 @@ import { SOCIALS } from "./socials";
 export type SignatureData = { socials: Record<string, string>; cardUrl: string; name: string; title: string; company: string; email: string; phone: string; website: string; photo: string; link: string; cta: string; color: string; font: string; layout: string };
 export const emptySignature: SignatureData = { socials: {}, cardUrl: '', name: '', title: '', company: '', email: '', phone: '', website: '', photo: '', link: '', cta: 'Connect with me', color: '#596b48', font: 'Arial', layout: 'classic' };
 export const exampleSignature: SignatureData = { ...emptySignature, name: 'Alex Morgan', title: 'Creative Director', company: 'Studio North', email: 'alex@example.com', phone: '+1 555 010 2040', website: 'https://example.com' };
-export function escapeHtml(value: string) { return value.replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]!)); }
+function escapeHtml(value: string) { return value.replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]!)); }
 export function safeUrl(value: string) { try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } }
 export function signatureHtml(data: SignatureData, assetOrigin = '') {
   const e = escapeHtml;
