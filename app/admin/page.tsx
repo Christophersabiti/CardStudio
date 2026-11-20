@@ -2,11 +2,10 @@ import { ArrowUpRightIcon } from "@/components/icons";
 import "@/components/admin/admin.css";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/nav/SiteHeader";
 import ResourceAdmin from "@/components/ResourceAdmin";
 import PlanPresentationAdmin from "@/components/PlanPresentationAdmin";
 import CommercialAdmin from "@/components/CommercialAdmin";
-import { activeBrand } from "@/lib/brand";
 import { currentUser } from "@/lib/auth/session";
 import { isAdministrator, isSuperAdministrator } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -51,7 +50,7 @@ export default async function Admin({
   if (!isSuperAdministrator(u))
     return (
       <>
-        <Header brand={activeBrand} />
+        <SiteHeader />
         <main className="max-w-5xl mx-auto p-5">
           <h1 className="text-3xl">Administration</h1>
           <p className="mt-4">
@@ -157,7 +156,7 @@ export default async function Admin({
   );
   return (
     <>
-      <Header brand={activeBrand} />
+      <SiteHeader />
       <main className="admin-shell">
         <header className="admin-heading">
           <div>

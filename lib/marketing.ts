@@ -1,42 +1,11 @@
-export const navigation = {
-  Solutions: [
-    [
-      "For individuals",
-      "A memorable introduction, wherever you meet.",
-      "individuals",
-    ],
-    ["For teams", "Keep your group’s contact details together.", "teams"],
-    ["For enterprise", "Explore the next stage of Card Studio.", "enterprise"],
-  ],
-  Products: [
-    [
-      "Digital business cards",
-      "Your details, beautifully presented.",
-      "digital-cards",
-    ],
-    ["QR sharing", "One scan. A better first impression.", "qr-sharing"],
-    ["Group contacts", "A whole team in one shared link.", "group-contacts"],
-    ["Event lead capture", "Explore our product roadmap.", "lead-capture"],
-    ["Email signatures", "Your brand, in every inbox.", "email-signatures"],
-    ["Stamp maker", "Create a custom seal or document stamp.", "stamp-maker"],
-  ],
-  Resources: [
-    ["Getting started", "From a blank canvas to your first card.", "guides"],
-    ["Product updates", "What’s available, and what’s next.", "updates"],
-    ["FAQ", "Straight answers to common questions.", "faq"],
-  ],
-  Company: [
-    ["About Card Studio", "Built for the people behind the business.", "about"],
-    ["Contact", "Get help with your account.", "contact"],
-    ["Careers", "Build better ways to connect.", "careers"],
-  ],
-} as const;
 /** Tools live at short addresses; every other entry is an /explore page. */
 const toolPaths: Record<string, string> = { "email-signatures": "/email-signature", "stamp-maker": "/stamp-maker" };
+/** Pages for products no longer offered; old links land somewhere useful. */
+export const retiredPaths: Record<string, string> = { enterprise: "/pricing", "lead-capture": "/explore/updates", careers: "/explore/about" };
 export const featureHref = (slug: string) => toolPaths[slug] || `/explore/${slug}`;
 export const featureCopy: Record<
   string,
-  { title: string; intro: string; points: string[]; planned?: boolean }
+  { title: string; intro: string; points: string[] }
 > = {
   individuals: {
     title: "Your next introduction starts here.",
@@ -57,17 +26,6 @@ export const featureCopy: Record<
       "Publish only with permission from every member.",
       "Share a downloadable group contact file.",
     ],
-  },
-  enterprise: {
-    title: "A foundation for bigger teams.",
-    intro:
-      "Organization-wide roles and enterprise integrations are on the roadmap. Today, Card Studio supports owner-managed cards and group contact bundles.",
-    points: [
-      "Private drafts and explicit publication.",
-      "Account-level access controls.",
-      "Talk to us about your organization’s needs.",
-    ],
-    planned: true,
   },
   "digital-cards": {
     title: "A card that keeps up with you.",
@@ -98,17 +56,6 @@ export const featureCopy: Record<
       "Remove access by unpublishing the bundle.",
     ],
   },
-  "lead-capture": {
-    title: "More ways to follow up. Coming next.",
-    intro:
-      "Event badge scanning, lead capture and CRM synchronization are planned features. They are not included in current subscriptions.",
-    points: [
-      "Current cards let people save your contact details.",
-      "Group bundles support sharing a reviewed roster.",
-      "Future lead tools will be announced in product updates.",
-    ],
-    planned: true,
-  },
   "email-signatures": {
     title: "Make every email feel like you.",
     intro: "Create a signature, customize its design, and install it in your email app.",
@@ -118,6 +65,16 @@ export const featureCopy: Record<
     title: "A stamp that’s ready when your documents are.",
     intro: "Choose a stamp design, edit the details and date, then download a transparent PNG for your documents.",
     points: ["Start from company, professional and date stamp templates.", "Customize wording, shape, ink, borders and signature artwork.", "Save your design and export a crisp transparent PNG."],
+  },
+  "print-package": {
+    title: "Print-ready cards from your design.",
+    intro:
+      "Turn a published business card into print-ready files you can send to any printer. Included with Basic and Premium plans.",
+    points: [
+      "Create and publish your business card first.",
+      "Open the card in the studio and choose Print package.",
+      "Download the files and share them with your printer.",
+    ],
   },
   guides: {
     title: "Meet your first digital card.",
@@ -135,7 +92,7 @@ export const featureCopy: Record<
     points: [
       "Now: account access, publishing controls and recoverable Trash.",
       "This release: plan usage, trials and billing infrastructure.",
-      "Later: expanded QR tools, enterprise roles and integrations.",
+      "Next: guided walkthroughs and a simpler account page.",
     ],
   },
   faq: {
@@ -168,11 +125,5 @@ export const featureCopy: Record<
       "For billing, include the order reference from your billing page.",
       "Never include passwords or payment-card details.",
     ],
-  },
-  careers: {
-    title: "Help shape the next introduction.",
-    intro:
-      "There are no open positions listed at the moment. Check product updates to follow Card Studio’s progress.",
-    points: ["Thoughtful design.", "Reliable software.", "Useful connections."],
   },
 };

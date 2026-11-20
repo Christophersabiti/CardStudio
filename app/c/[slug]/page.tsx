@@ -2,7 +2,7 @@ import CardFrame from "@/components/CardFrame";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/nav/SiteHeader";
 import CardPreview from "@/components/CardPreview";
 import CardActions from "@/components/CardActions";
 import { getCardBySlug, incrementViews } from "@/lib/cards";
@@ -40,7 +40,7 @@ export default async function PublicCardPage({ params }: { params: Promise<{ slu
 
   return (
     <>
-      <Header brand={activeBrand} />
+      <SiteHeader />
       <main data-card-surface className="max-w-[560px] mx-auto px-5 pb-16 flex flex-col gap-4 items-center">
         <div
           className="w-full rounded-2xl border p-6 grid place-items-center"

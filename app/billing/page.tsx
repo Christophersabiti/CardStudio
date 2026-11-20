@@ -2,9 +2,8 @@ import UsageBanner from "@/components/UsageBanner";
 /* eslint-disable react-hooks/purity -- Request-time server rendering of expiry dates; no client render clock. */
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/nav/SiteHeader";
 import BillingActions from "@/components/BillingActions";
-import { activeBrand } from "@/lib/brand";
 import { currentUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import { catalog, money } from "@/lib/billing/catalog";
@@ -15,7 +14,7 @@ export default async function Billing() {
   if (u.appRole === "superadmin")
     return (
       <>
-        <Header brand={activeBrand} />
+        <SiteHeader />
         <main className="max-w-5xl mx-auto px-5 pb-16">
           <h1 className="text-3xl font-bold">Your access</h1>
           <section className="cs-panel mt-6">
@@ -71,7 +70,7 @@ export default async function Billing() {
   const nextReset=new Date(localMidnight-(Date.UTC(part("year"),part("month")-1,part("day"),part("hour"),part("minute"))-localMidnight));
   return (
     <>
-      <Header brand={activeBrand} />
+      <SiteHeader />
       <main className="max-w-6xl mx-auto px-5 pb-16">
         <div className="flex justify-between gap-4">
           <div>

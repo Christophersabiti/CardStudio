@@ -1,12 +1,11 @@
 import { ArrowUpRightIcon } from "@/components/icons";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/nav/SiteHeader";
 import Collection from "@/components/qr-studio/Collection";
 import { currentUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import { qrFeatures } from "@/lib/qr-studio/server";
-import { activeBrand } from "@/lib/brand";
 import { type QrRecord } from "@/lib/qr-studio/schema";
 import "@/components/qr-studio/qr-studio.css";
 export default async function Page({
@@ -63,7 +62,7 @@ export default async function Page({
   }
   return (
     <>
-      <Header brand={activeBrand} />
+      <SiteHeader />
       <main className="qr-workspace">
         <div className="qr-studio-heading">
           <div>

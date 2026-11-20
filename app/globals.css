@@ -156,8 +156,21 @@ h1, h2, h3 {
   align-items: start;
 }
 @media (max-width: 940px) {
-  .cs-studio-grid { grid-template-columns: 1fr; }
-  .cs-stage-col { position: static !important; order: -1; }
+  /* minmax(0,1fr): a wide child must never stretch the page past the screen. */
+  .cs-studio-grid { grid-template-columns: minmax(0, 1fr); }
+  .cs-stage-col { position: static !important; scroll-margin-top: 80px; }
+}
+/* Phone shortcut from the form down to the live preview. */
+.cs-preview-jump { display: none; }
+@media (max-width: 940px) {
+  .cs-preview-jump {
+    display: inline-flex; align-items: center; gap: .4rem;
+    position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 30;
+    min-height: 44px; padding: 0 1rem; border-radius: 999px;
+    background: var(--brand-primary); color: #fff; font-weight: 700; font-size: .875rem; text-decoration: none;
+    box-shadow: 0 8px 24px #0003;
+  }
+  body:has(.sn-tabs) .cs-preview-jump { bottom: calc(76px + env(safe-area-inset-bottom)); }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

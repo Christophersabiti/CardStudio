@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/nav/SiteHeader";
 import Dashboard from "@/components/Dashboard";
 import UsageBanner from "@/components/UsageBanner";
-import { activeBrand } from "@/lib/brand";
 import { createAdminClient } from "@/lib/supabase/server";
 import { currentUser, needsOnboarding } from "@/lib/auth/session";
 import { isAdministrator } from "@/lib/roles";
@@ -18,7 +17,7 @@ export default async function DashboardPage({
   }>;
 }) {
   const user = await currentUser();
-  if (!user) redirect("/login?next=/dashboard");
+  if (!user) redirect("/sign-in?next=/dashboard");
   if (needsOnboarding(user)) redirect("/onboarding");
   const params = await searchParams;
   const page = Math.max(1, Math.min(10000, parseInt(params.page || "1") || 1));
@@ -33,7 +32,7 @@ export default async function DashboardPage({
   if (r.error) throw Error("Card search unavailable");
   return (
     <>
-      <Header brand={activeBrand} />
+      <SiteHeader />
       <main className="max-w-6xl mx-auto px-5 pb-16">
         <div className="flex flex-wrap justify-between gap-4">
           <div>
