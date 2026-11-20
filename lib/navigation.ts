@@ -26,6 +26,16 @@ export const products: Product[] = [
   { key: "print", title: "Print package", summary: "Print-ready files of your published card. Basic and Premium plans.", href: "/explore/print-package" },
 ];
 
+/** Which administrator switch controls each product. */
+export const productFeature = {
+  card: "cards",
+  qr: "qr_codes",
+  group: "groups",
+  signature: "email_signature",
+  stamp: "stamps",
+  print: "print_package",
+} as const satisfies Record<ProductKey, string>;
+
 export interface NavLink { title: string; href: string; summary?: string }
 
 export const helpLinks: NavLink[] = [

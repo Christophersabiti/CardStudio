@@ -1,4 +1,5 @@
 import "server-only";
+import { requireFeature } from "@/lib/features";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
 import { needsOnboarding, requireUser } from "@/lib/auth/session";
@@ -117,6 +118,8 @@ export async function qrEndpoint(req: Request, slug?: string) {
       })
       .strict()
       .parse(await readJson(req, 100000));
+    // A switched-off QR Studio blocks new and changed QR codes, but people can still take theirs down.
+    if (!["unpublish", "delete", "archive"].includes(body.action)) await requireFeature("qr_codes");
     const previous = slug ? await ownedQr(slug, user.id) : null;
     if (slug && !previous) throw new HttpError(404, "QR code not found.");
     if (!previous && !body.id) throw new HttpError(400, "Missing request ID.");

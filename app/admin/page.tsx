@@ -6,6 +6,9 @@ import SiteHeader from "@/components/nav/SiteHeader";
 import ResourceAdmin from "@/components/ResourceAdmin";
 import PlanPresentationAdmin from "@/components/PlanPresentationAdmin";
 import CommercialAdmin from "@/components/CommercialAdmin";
+import UserActions from "@/components/admin/UserActions";
+import FeatureAdmin from "@/components/admin/FeatureAdmin";
+import { accountDetail, listAccounts, segments, type Segment } from "@/lib/admin/accounts";
 import { currentUser } from "@/lib/auth/session";
 import { isAdministrator, isSuperAdministrator } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -14,7 +17,7 @@ import { pesapalReady } from "@/lib/billing/pesapal";
 export default async function Admin({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; tab?: string }>;
+  searchParams: Promise<{ page?: string; tab?: string; q?: string; segment?: string; user?: string }>;
 }) {
   const u = await currentUser();
   if (!u) redirect("/sign-in");
@@ -22,7 +25,9 @@ export default async function Admin({
   const params = await searchParams;
   const tabs = [
     ["overview", "Overview"],
-    ["accounts", "Accounts"],
+    ["users", "Users"],
+    ["premium", "Premium users"],
+    ["features", "Features"],
     ["resources", "Cards & groups"],
     ["plans", "Plans & pricing"],
     ["stamp-plans", "E-stamp pricing"],
@@ -30,9 +35,14 @@ export default async function Admin({
     ["orders", "Orders"],
     ["audit", "Activity"],
   ] as const;
-  const tab = tabs.some(([key]) => key === params.tab)
-    ? params.tab!
-    : "overview";
+  // "accounts" was the old name for the Users tab.
+  const requested = params.tab === "accounts" ? "users" : params.tab;
+  const tab = tabs.some(([key]) => key === requested) ? requested! : "overview";
+  const query = (params.q || "").trim().slice(0, 120);
+  const segment: Segment = tab === "premium"
+    ? (params.segment === "expiring" ? "expiring" : "paid")
+    : (segments.some(([key]) => key === params.segment) ? params.segment as Segment : "all");
+  const selectedUser = /^[0-9a-f-]{36}$/.test(params.user || "") ? params.user! : null;
   const c = createAdminClient();
   const page = Math.max(
     1,
@@ -63,13 +73,9 @@ export default async function Admin({
         </main>
       </>
     );
-  const [cat, accounts, orders, audit, cards, groups] = await Promise.all([
+  const directoryTab = tab === "users" || tab === "premium";
+  const [cat, orders, audit, cards, groups, directory, detail, overview, flags] = await Promise.all([
     catalog(true),
-    c
-      .from("users")
-      .select("id,app_role,status,clerk_user_id,profiles(display_name)")
-      .order("created_at", { ascending: false })
-      .range((page - 1) * 25, page * 25 - 1),
     c
       .from("billing_orders")
       .select("*")
@@ -90,21 +96,25 @@ export default async function Admin({
       .select("id,slug,owner_id,published,deleted_at")
       .order("created_at", { ascending: false })
       .range((page - 1) * 25, page * 25 - 1),
+    directoryTab ? listAccounts(u.id, query, segment, page) : null,
+    directoryTab && selectedUser ? accountDetail(u.id, selectedUser) : null,
+    tab === "overview" ? c.rpc("admin_overview", { actor: u.id }) : null,
+    tab === "features" ? c.from("feature_flags").select("key,enabled,updated_at").order("key") : null,
   ]);
+  // Before the admin_manual_grants migration is applied these return errors; show a notice rather than failing.
+  const setupNeeded = !!(overview?.error || flags?.error);
+  const stats = (overview?.data || {}) as { accounts?: number; new_7d?: number; new_30d?: number; paid?: number; manual?: number; trials?: number; expiring_7d?: number; by_plan?: Record<string, number>; manual_revenue_30d?: Record<string, number> };
+  const grantPlans = cat.plans.filter((p) => p.enabled && (p.code === "basic" || p.code === "premium")).map((p) => ({ id: p.id, code: p.code, name: p.name }));
   if (
-    accounts.error ||
     orders.error ||
     audit.error ||
     cards.error ||
     groups.error
   )
     throw Error("Admin data unavailable");
-  const accountRows = accounts.data as unknown as Parameters<
-    typeof CommercialAdmin
-  >[0]["accounts"];
   const paginationRows =
-    tab === "accounts"
-      ? accounts.data
+    directoryTab
+      ? directory?.items || []
       : tab === "orders"
         ? orders.data
         : tab === "audit"
@@ -117,9 +127,17 @@ export default async function Admin({
       "Platform overview",
       "A clear view of your workspace and commercial settings.",
     ],
-    accounts: [
-      "Account management",
-      "Manage roles and access across your platform.",
+    users: [
+      "Users",
+      "Find anyone by name or email, see their plan, and give or revoke paid plans.",
+    ],
+    premium: [
+      "Premium users",
+      "Everyone on a paid plan or trial, soonest to end first.",
+    ],
+    features: [
+      "Features",
+      "Switch products on or off for every customer.",
     ],
     resources: [
       "Cards & groups",
@@ -146,14 +164,17 @@ export default async function Admin({
       "A record of administrative changes across your platform.",
     ],
   };
-  const commercial = (section: "settings" | "plans" | "accounts") => (
-    <CommercialAdmin
-      section={section}
-      settings={cat.settings}
-      plans={cat.plans}
-      accounts={accountRows}
-    />
+  const commercial = (section: "settings" | "plans") => (
+    <CommercialAdmin section={section} settings={cat.settings} plans={cat.plans} />
   );
+  const directoryHref = (extra: Record<string, string | number | undefined>) => {
+    const sp = new URLSearchParams();
+    const merged = { tab, q: query || undefined, segment: tab === "premium" ? (segment === "paid" ? undefined : segment) : (segment === "all" ? undefined : segment), ...extra };
+    for (const [k, v] of Object.entries(merged)) if (v !== undefined && v !== "") sp.set(k, String(v));
+    return `/admin?${sp.toString()}`;
+  };
+  const shortDate = (d: string) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const sourceLabel = { free: "Free", trial: "Trial", paid: "Paid", manual: "Given by admin" } as const;
   return (
     <>
       <SiteHeader />
@@ -171,7 +192,8 @@ export default async function Admin({
             </Link>
           </div>
         </header>
-        <nav className="admin-nav" aria-label="Control center tabs">
+        <div className="admin-layout">
+        <nav className="admin-nav" aria-label="Control center sections">
           {tabs.map(([key, label]) => (
             <Link
               key={key}
@@ -182,6 +204,7 @@ export default async function Admin({
             </Link>
           ))}
         </nav>
+        <div className="admin-main">
         <section aria-label={descriptions[tab][0]}>
           <div className="admin-section-heading">
             <div>
@@ -192,25 +215,29 @@ export default async function Admin({
               <span className="admin-badge">Live platform data</span>
             )}
           </div>
+          {setupNeeded && (
+            <p className="admin-message is-error mb-5">The database update for user plans and feature switches has not been applied yet. Apply migration 20261120191455_admin_manual_grants.</p>
+          )}
           {tab === "overview" && (
             <>
               <div className="admin-kpis">
-                {totals.map((t, i) => (
-                  <section key={t.table} className="admin-kpi">
-                    <span>
-                      {
-                        [
-                          "Total accounts",
-                          "Individual cards",
-                          "Contact groups",
-                          "Customer orders",
-                        ][i]
-                      }
-                    </span>
-                    <strong>{t.count.toLocaleString()}</strong>
-                    <small>Across all accounts</small>
-                  </section>
+                {[
+                  ["Users", stats.accounts ?? totals[0].count, `${stats.new_7d ?? 0} new this week · ${stats.new_30d ?? 0} this month`, "/admin?tab=users"],
+                  ["Paid online", stats.paid ?? 0, "Active paid plans through checkout", "/admin?tab=premium"],
+                  ["Given by admin", stats.manual ?? 0, "Plans activated after outside payment", "/admin?tab=premium"],
+                  ["Ending in 7 days", stats.expiring_7d ?? 0, `${stats.trials ?? 0} trials running`, "/admin?tab=premium&segment=expiring"],
+                ].map(([label, value, note, href]) => (
+                  <Link key={String(label)} href={String(href)} className="admin-kpi">
+                    <span>{label}</span>
+                    <strong>{Number(value).toLocaleString()}</strong>
+                    <small>{note}</small>
+                  </Link>
                 ))}
+              </div>
+              <div className="admin-mini-stats">
+                <span>Active plans: {["basic", "premium"].map((code) => `${code === "basic" ? "Basic" : "Premium"} ${stats.by_plan?.[code] ?? 0}`).join(" · ")}</span>
+                <span>Recorded outside payments, 30 days: {Object.entries(stats.manual_revenue_30d || {}).map(([cur, total]) => `${cur} ${Number(total).toLocaleString()}`).join(" · ") || "none"}</span>
+                <span>{totals[1].count.toLocaleString()} cards · {totals[2].count.toLocaleString()} groups · {totals[3].count.toLocaleString()} orders</span>
               </div>
               <div className="admin-columns">
                 <section className="cs-panel">
@@ -246,11 +273,15 @@ export default async function Admin({
                 </section>
                 <section className="cs-panel">
                   <h3 className="text-lg font-bold">Manage your platform</h3>
-                  <Link href="/admin?tab=accounts" className="admin-shortcut">
-                    <strong>Account access <ArrowUpRightIcon /></strong>
+                  <Link href="/admin?tab=users" className="admin-shortcut">
+                    <strong>Users and paid plans <ArrowUpRightIcon /></strong>
                     <span>
-                      Review members, administrators and account status.
+                      Find a customer, give them a plan after an outside payment, or change their access.
                     </span>
+                  </Link>
+                  <Link href="/admin?tab=features" className="admin-shortcut">
+                    <strong>Features <ArrowUpRightIcon /></strong>
+                    <span>Switch products on or off for every customer.</span>
                   </Link>
                   <Link href="/admin?tab=plans" className="admin-shortcut">
                     <strong>Plans & pricing <ArrowUpRightIcon /></strong>
@@ -269,7 +300,88 @@ export default async function Admin({
               </div>
             </>
           )}
-          {tab === "accounts" && commercial("accounts")}
+          {directoryTab && directory && (
+            <>
+              <form className="admin-search" action="/admin" role="search">
+                <input type="hidden" name="tab" value={tab} />
+                {tab === "premium" ? (
+                  segment === "expiring" && <input type="hidden" name="segment" value="expiring" />
+                ) : (
+                  segment !== "all" && <input type="hidden" name="segment" value={segment} />
+                )}
+                <label className="sr-only" htmlFor="admin-q">Search users</label>
+                <input id="admin-q" name="q" defaultValue={query} className="cs-input" placeholder="Search by name or email" />
+                <button className="cs-button cs-primary">Search</button>
+                {query && <Link href={directoryHref({ q: undefined })} className="cs-button">Clear</Link>}
+              </form>
+              <nav className="admin-chips" aria-label="Filter users">
+                {(tab === "premium" ? [["paid", "All paid & trial"], ["expiring", "Ending in 7 days"]] as const : segments).map(([key, label]) => (
+                  <Link key={key} href={directoryHref({ segment: tab === "premium" ? (key === "paid" ? undefined : key) : (key === "all" ? undefined : key), page: undefined })} aria-current={segment === key ? "page" : undefined}>{label}</Link>
+                ))}
+              </nav>
+              <p className="admin-count">{directory.total.toLocaleString()} {directory.total === 1 ? "user" : "users"}{query && <> matching “{query}”</>}</p>
+              {directory.items.length ? (
+                <div className="admin-table-wrap">
+                  <table className="admin-table admin-users">
+                    <thead><tr><th>User</th><th>Plan</th><th>Ends</th><th>Content</th><th>Joined</th></tr></thead>
+                    <tbody>
+                      {directory.items.map((a) => (
+                        <tr key={a.id} aria-selected={selectedUser === a.id}>
+                          <td>
+                            <Link href={directoryHref({ user: a.id })} className="admin-user-link">
+                              <strong>{a.display_name || a.email || "Unnamed account"}</strong>
+                              <small>{a.email || "Email unavailable"}</small>
+                            </Link>
+                            {(a.app_role !== "member" || a.status !== "active") && (
+                              <span className="admin-tags">
+                                {a.app_role !== "member" && <span className="admin-badge">{a.app_role}</span>}
+                                {a.status !== "active" && <span className="admin-badge admin-badge-warn">{a.status}</span>}
+                              </span>
+                            )}
+                          </td>
+                          <td><span className={`admin-plan admin-plan-${a.source}`}>{a.plan_name}</span><small className="block cs-muted mt-1">{sourceLabel[a.source]}</small></td>
+                          <td>{a.period_end ? shortDate(a.period_end) : "—"}</td>
+                          <td className="text-xs">{a.cards} cards · {a.groups} groups · {a.qr_codes} QR</td>
+                          <td>{shortDate(a.created_at)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="admin-empty"><strong>No users found</strong><p className="mt-2">Try a different name, email or filter.</p></div>
+              )}
+              {selectedUser && (
+                <aside className="admin-drawer" aria-label="User details">
+                  <div className="admin-drawer-head">
+                    {detail ? (
+                      <div>
+                        <h3>{detail.account.display_name || detail.account.email || "Unnamed account"}</h3>
+                        <p>{detail.account.email}</p>
+                        <p><span className={`admin-plan admin-plan-${detail.account.source}`}>{detail.account.plan_name}</span> {detail.account.period_end ? `until ${shortDate(detail.account.period_end)}` : ""} · joined {shortDate(detail.account.created_at)}</p>
+                      </div>
+                    ) : <h3>User not found</h3>}
+                    <Link href={directoryHref({ user: undefined })} className="cs-button" aria-label="Close user details">Close</Link>
+                  </div>
+                  {detail && (
+                    <>
+                      <UserActions account={detail.account} grants={detail.grants} plans={grantPlans} self={detail.account.id === u.id} />
+                      {detail.orders.length > 0 && (
+                        <section className="admin-card">
+                          <h3>Online payments</h3>
+                          <ul className="admin-grants">
+                            {detail.orders.map((o) => <li key={o.id}><div><strong>{money(o)}</strong><small>{shortDate(o.created_at)} · {o.status} · {o.id.slice(0, 8)}</small></div></li>)}
+                          </ul>
+                        </section>
+                      )}
+                      <p className="admin-identity mt-4">Account ID {detail.account.id}</p>
+                    </>
+                  )}
+                </aside>
+              )}
+            </>
+          )}
+          {tab === "features" && flags && !flags.error && <FeatureAdmin flags={flags.data || []} />}
           {tab === "settings" && (
             <>
               <p className="cs-panel mb-6">
@@ -381,14 +493,14 @@ export default async function Admin({
               </div>
             ))}
         </section>
-        {["accounts", "orders", "audit", "resources"].includes(tab) && (
+        {["users", "premium", "orders", "audit", "resources"].includes(tab) && (
           <nav className="admin-footer" aria-label="Admin pagination">
             <span>Page {page}</span>
             <div className="flex gap-3">
               {page > 1 && (
                 <Link
                   className="cs-button"
-                  href={`/admin?tab=${tab}&page=${page - 1}`}
+                  href={directoryTab ? directoryHref({ page: page - 1 }) : `/admin?tab=${tab}&page=${page - 1}`}
                 >
                   Previous
                 </Link>
@@ -398,7 +510,7 @@ export default async function Admin({
                 : paginationRows.length === 25) && (
                 <Link
                   className="cs-button"
-                  href={`/admin?tab=${tab}&page=${page + 1}`}
+                  href={directoryTab ? directoryHref({ page: page + 1 }) : `/admin?tab=${tab}&page=${page + 1}`}
                 >
                   Next
                 </Link>
@@ -406,6 +518,8 @@ export default async function Admin({
             </div>
           </nav>
         )}
+        </div>
+        </div>
       </main>
     </>
   );

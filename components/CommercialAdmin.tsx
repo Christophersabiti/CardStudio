@@ -12,19 +12,11 @@ type Settings = {
 export default function CommercialAdmin({
   settings,
   plans,
-  accounts,
   section = "settings",
 }: {
-  section?: "settings" | "plans" | "accounts";
+  section?: "settings" | "plans";
   settings: Settings;
   plans: Plan[];
-  accounts: {
-    id: string;
-    app_role: string;
-    status: string;
-    clerk_user_id: string | null;
-    profiles: { display_name: string } | null;
-  }[];
 }) {
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
@@ -242,75 +234,6 @@ export default function CommercialAdmin({
           </form>
         )}
       </div>
-      {section === "accounts" && (
-        <>
-          <h2 className="text-2xl mt-10 mb-5">Account access</h2>
-          <p className="cs-muted text-sm mb-4">
-            Only superadmins can change roles, suspend access, or configure
-            commercial terms. You cannot change your own access here.
-          </p>
-          <div className="grid gap-3">
-            {accounts.map((a) => (
-              <form
-                key={a.id}
-                className="cs-panel flex flex-wrap items-end gap-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const f = new FormData(e.currentTarget);
-                  void save({
-                    action: "account",
-                    target: a.id,
-                    body: {
-                      app_role: f.get("app_role"),
-                      status: f.get("status"),
-                    },
-                  });
-                }}
-              >
-                <div className="flex-1 min-w-0">
-                  <strong>{a.profiles?.display_name || "Account"}</strong>
-                  <p className="text-xs cs-muted break-all">
-                    {a.clerk_user_id || "Legacy identity pending link"} · {a.id}
-                  </p>
-                </div>
-                <label className="grid gap-1 text-sm">
-                  Role
-                  <select
-                    aria-label={`Role for ${a.id}`}
-                    className="cs-input"
-                    name="app_role"
-                    defaultValue={a.app_role}
-                  >
-                    <option value="member">Member</option>
-                    <option value="admin">Admin</option>
-                    <option value="superadmin">Superadmin</option>
-                  </select>
-                </label>
-                <label className="grid gap-1 text-sm">
-                  Access
-                  <select
-                    className="cs-input"
-                    name="status"
-                    defaultValue={a.status}
-                  >
-                    <option value="active">Active</option>
-                    <option value="disabled">Disabled</option>
-                    {a.status === "deleted" && (
-                      <option value="deleted">Deleted</option>
-                    )}
-                  </select>
-                </label>
-                <button
-                  disabled={busy || a.status === "deleted"}
-                  className="cs-button"
-                >
-                  Save account
-                </button>
-              </form>
-            ))}
-          </div>
-        </>
-      )}
     </>
   );
 }

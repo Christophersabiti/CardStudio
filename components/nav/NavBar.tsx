@@ -3,12 +3,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SignOutButton, useUser } from "@clerk/nextjs";
-import { helpLinks, isActive, products, workLinks } from "@/lib/navigation";
+import { helpLinks, isActive, productFeature, products, workLinks, type Product } from "@/lib/navigation";
 import { ArrowUpRightIcon, ChevronDownIcon, CloseIcon, FolderIcon, HomeIcon, MenuIcon, PlusIcon, UserIcon } from "@/components/icons";
 import ProductIcon from "./ProductIcon";
 import { useAccountSummary } from "./useAccountSummary";
 import type { AccountSummary } from "@/lib/billing/account-summary";
 import { planBadgeText } from "@/lib/billing/account-plan";
+
+/** Product switches from /api/features; until they load, every product shows. */
+let featureCache: Record<string, boolean> | null = null;
+function useVisibleProducts(): Product[] {
+  const [flags, setFlags] = useState<Record<string, boolean> | null>(featureCache);
+  useEffect(() => {
+    if (featureCache) return;
+    let live = true;
+    fetch("/api/features")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((f) => { if (f && live) { featureCache = f; setFlags(f); } })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []);
+  return products.filter((p) => flags?.[productFeature[p.key]] !== false);
+}
 
 type BrandInfo = { key: string; name: string; logo: string; initial: string };
 type Menu = "create" | "work" | "help" | "account" | null;
@@ -32,6 +48,7 @@ function ClerkNav({ brand }: { brand: BrandInfo }) {
 
 function Nav({ brand, signedIn, loading = false, clerk = false, account, summary = null }: { brand: BrandInfo; signedIn: boolean; loading?: boolean; clerk?: boolean; account?: Account; summary?: AccountSummary | null }) {
   const pathname = usePathname() || "/";
+  const visible = useVisibleProducts();
   const [menu, setMenu] = useState<Menu>(null);
   const [sheet, setSheet] = useState(false);
   const root = useRef<HTMLElement>(null);
@@ -176,7 +193,7 @@ function Nav({ brand, signedIn, loading = false, clerk = false, account, summary
               <p className="sn-eyebrow">What do you want to make?</p>
               <Link href="/create" className="sn-more">See everything you can make <ArrowUpRightIcon /></Link>
             </div>
-            <ProductGrid pathname={pathname} />
+            <ProductGrid items={visible} pathname={pathname} />
           </div>
         )}
       </header>
@@ -191,7 +208,7 @@ function Nav({ brand, signedIn, loading = false, clerk = false, account, summary
           )}
           <section>
             <h2 className="sn-eyebrow">Create</h2>
-            <ProductGrid pathname={pathname} compact />
+            <ProductGrid items={visible} pathname={pathname} compact />
           </section>
           {signedIn && (
             <section>
@@ -313,10 +330,10 @@ function MenuButton({ name, label, open, onToggle, active = false }: { name: Exc
 /** Products sharing a page (card and team contacts both open /studio) are never marked current. */
 const ownsPath = (href: string) => products.filter((p) => p.href.split("?")[0] === href.split("?")[0]).length === 1;
 
-function ProductGrid({ pathname, compact = false }: { pathname: string; compact?: boolean }) {
+function ProductGrid({ items, pathname, compact = false }: { items: Product[]; pathname: string; compact?: boolean }) {
   return (
     <ul className={`sn-products${compact ? " sn-compact" : ""}`}>
-      {products.map((p) => (
+      {items.map((p) => (
         <li key={p.key}>
           <Link href={p.href} className="sn-product" aria-current={ownsPath(p.href) && isActive(pathname, p.href) ? "page" : undefined}>
             <ProductIcon product={p.key} />

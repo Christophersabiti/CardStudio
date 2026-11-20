@@ -9,6 +9,10 @@ Also included, approved after the build:
 
 **Phase 2 status:** implemented, not yet committed. One change from the plan: the plan badge loads in the browser from `/api/usage` (cached for the tab) instead of being rendered on the server. Server rendering would have run account checks on every public page, including the home page. The signed-in header, account menu and account page were checked with sample data only, because local sign-in needs Clerk development keys.
 
+**Phase 4 status:** implemented, not yet committed. Decisions taken from section 5 defaults: grants of 1, 3, 6 or 12 months (1 preselected; the database accepts 1 to 24), superadmins only. Granting the same plan extends from its current end date; granting a different plan starts now and replaces the current one. Revoking the newest grant restores the previous period if it still has time left, otherwise the account falls back to Free.
+
+Deploy order: apply `supabase/migrations/20261120191455_admin_manual_grants.sql` to the database **before** this code goes live. Until then the admin Users, Premium and Features sections show a setup notice and product switches default to on. The migration was tested against the full local migration history in PGlite (`tests/admin-grants.test.ts`); it has not been applied to any hosted database. Checked in the browser with sample data only.
+
 ## 1. What the review found
 
 Evidence comes from the source code and from running the local app at desktop width and at 375 px.

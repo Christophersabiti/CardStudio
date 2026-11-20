@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/features";
 import { requireUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import { errorResponse, HttpError, jsonResponse, checkOrigin, readJson } from "@/lib/http";
@@ -16,7 +17,7 @@ export async function GET(){
 }
 export async function POST(req:Request){
   try{
-    checkOrigin(req); const user = await requireUser("Sign in to save a reusable stamp design.");
+    checkOrigin(req); const user = await requireUser("Sign in to save a reusable stamp design."); await requireFeature("stamps");
     await rateLimit(user.id,"stamp-design-save",30,60);
     const body=stampSaveSchema.parse(await readJson(req,750_000));
     const c=createAdminClient();
