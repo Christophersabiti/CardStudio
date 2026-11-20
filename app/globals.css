@@ -263,3 +263,28 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .cs-color-choice[aria-pressed="true"] .cs-color-choice-dot { border: 5px solid var(--brand-primary); }
 .cs-color-swatch { width: 22px; height: 22px; border: 1px solid var(--line-strong); border-radius: 50%; flex: none; }
 .cs-color-input { width: 48px; height: 44px; padding: 3px; border: 1px solid var(--field-line); border-radius: 8px; background: var(--field); cursor: pointer; }
+
+/* Account page */
+.acct-page { max-width: 980px; margin: 0 auto; padding: 0 20px 64px; display: grid; gap: 28px; }
+.acct-card { border: 1px solid var(--line); background: var(--surface); border-radius: 1.25rem; padding: 1.5rem; }
+.acct-identity { display: flex; gap: 16px; align-items: center; }
+.acct-photo { flex: none; width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+.acct-photo-empty { display: grid; place-items: center; background: var(--brand-primary); color: #fff; font-size: 28px; font-weight: 700; }
+.acct-plan { display: inline-block; margin-top: 8px; padding: 3px 11px; border-radius: 999px; font-size: 13px; font-weight: 700; border: 1px solid var(--line); }
+.acct-plan-paid, .acct-plan-manual { border-color: #4caf84; background: color-mix(in srgb, #4caf84 14%, transparent); }
+.acct-plan-trial { border-color: #7aa7e8; background: color-mix(in srgb, #7aa7e8 14%, transparent); }
+.acct-plan-expiring { border-color: #d9912b; background: color-mix(in srgb, #d9912b 16%, transparent); }
+.acct-plan-unlimited { border-color: var(--brand-primary); }
+.acct-meters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px; margin-top: 20px; }
+.acct-meter-head { display: flex; justify-content: space-between; gap: 8px; font-size: .875rem; }
+.acct-bar { height: 8px; margin-top: 6px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 9%, transparent); overflow: hidden; }
+.acct-bar span { display: block; height: 100%; border-radius: inherit; background: var(--brand-primary); }
+.acct-bar span.is-high { background: #d9912b; }
+.acct-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.acct-actions .cs-button { min-height: 44px; display: inline-flex; align-items: center; }
+.acct-settings { scroll-margin-top: 84px; min-width: 0; }
+.acct-settings .cl-rootBox, .acct-settings .cl-cardBox { max-width: 100%; }
+@media (max-width: 640px) {
+  .acct-meters { grid-template-columns: 1fr; }
+  .acct-actions .cs-button { flex: 1 1 calc(50% - 10px); justify-content: center; }
+}

@@ -2,13 +2,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
+import { SignOutButton, useUser } from "@clerk/nextjs";
 import { helpLinks, isActive, products, workLinks } from "@/lib/navigation";
 import { ArrowUpRightIcon, ChevronDownIcon, CloseIcon, FolderIcon, HomeIcon, MenuIcon, PlusIcon, UserIcon } from "@/components/icons";
 import ProductIcon from "./ProductIcon";
+import { useAccountSummary } from "./useAccountSummary";
+import type { AccountSummary } from "@/lib/billing/account-summary";
+import { planBadgeText } from "@/lib/billing/account-plan";
 
 type BrandInfo = { key: string; name: string; logo: string; initial: string };
-type Menu = "create" | "work" | "help" | null;
+type Menu = "create" | "work" | "help" | "account" | null;
+type Account = { name: string; email: string; imageUrl: string };
 
 export default function NavBar({ authEnabled, brand }: { authEnabled: boolean; brand: BrandInfo }) {
   return authEnabled ? <ClerkNav brand={brand} /> : <Nav brand={brand} signedIn={false} />;
@@ -16,11 +20,17 @@ export default function NavBar({ authEnabled, brand }: { authEnabled: boolean; b
 
 /** Reads Clerk state; only rendered inside ClerkProvider. */
 function ClerkNav({ brand }: { brand: BrandInfo }) {
-  const { isLoaded, isSignedIn } = useUser();
-  return <Nav brand={brand} signedIn={!!isSignedIn} loading={!isLoaded} clerk />;
+  const { isLoaded, isSignedIn, user } = useUser();
+  const summary = useAccountSummary(isSignedIn && user ? user.id : null);
+  const account: Account | undefined = isSignedIn && user ? {
+    name: user.fullName || user.firstName || "Your account",
+    email: user.primaryEmailAddress?.emailAddress || "",
+    imageUrl: user.imageUrl,
+  } : undefined;
+  return <Nav brand={brand} signedIn={!!isSignedIn} loading={!isLoaded} clerk account={account} summary={summary} />;
 }
 
-function Nav({ brand, signedIn, loading = false, clerk = false }: { brand: BrandInfo; signedIn: boolean; loading?: boolean; clerk?: boolean }) {
+function Nav({ brand, signedIn, loading = false, clerk = false, account, summary = null }: { brand: BrandInfo; signedIn: boolean; loading?: boolean; clerk?: boolean; account?: Account; summary?: AccountSummary | null }) {
   const pathname = usePathname() || "/";
   const [menu, setMenu] = useState<Menu>(null);
   const [sheet, setSheet] = useState(false);
@@ -114,7 +124,33 @@ function Nav({ brand, signedIn, loading = false, clerk = false }: { brand: Brand
             {loading ? (
               <Link href="/dashboard" className="sn-link">Account</Link>
             ) : signedIn ? (
-              <UserButton userProfileMode="navigation" userProfileUrl="/dashboard/account" />
+              <>
+                {summary && <PlanBadge summary={summary} />}
+                <div className="sn-group">
+                  <button
+                    type="button"
+                    className="sn-avatar-button"
+                    data-menu="account"
+                    aria-expanded={menu === "account"}
+                    aria-controls="menu-account"
+                    aria-label="Account menu"
+                    onClick={() => {
+                      // Phones show account details in the full-screen menu instead of a dropdown.
+                      if (window.matchMedia("(max-width: 900px)").matches) { setMenu(null); setSheet(true); }
+                      else toggle("account");
+                    }}
+                  >
+                    <Avatar account={account} />
+                  </button>
+                  {menu === "account" && (
+                    <div className="sn-panel sn-panel-account" id="menu-account">
+                      <AccountCard account={account} summary={summary} />
+                      <AccountLinks admin={!!summary?.admin} pathname={pathname} />
+                      {clerk && <SignOutButton redirectUrl="/sign-in"><button type="button" className="sn-signout">Sign out</button></SignOutButton>}
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
               <>
                 <Link href="/sign-in" className="sn-link sn-signin">Sign in</Link>
@@ -147,6 +183,12 @@ function Nav({ brand, signedIn, loading = false, clerk = false }: { brand: Brand
 
       {sheet && (
         <div className="sn-sheet" id="site-menu" ref={sheetRef} role="dialog" aria-modal="true" aria-label="Site menu">
+          {signedIn && (
+            <section className="sn-sheet-identity" aria-label="Your account">
+              <AccountCard account={account} summary={summary} />
+              <AccountLinks admin={!!summary?.admin} pathname={pathname} />
+            </section>
+          )}
           <section>
             <h2 className="sn-eyebrow">Create</h2>
             <ProductGrid pathname={pathname} compact />
@@ -164,8 +206,7 @@ function Nav({ brand, signedIn, loading = false, clerk = false }: { brand: Brand
           <section className="sn-sheet-account">
             {signedIn ? (
               <>
-                <Link href="/dashboard/account" className="sn-sheet-button">Account settings</Link>
-                {clerk && <SignOutButton redirectUrl="/sign-in"><button className="sn-sheet-button sn-ghost">Sign out</button></SignOutButton>}
+                {clerk && <SignOutButton redirectUrl="/sign-in"><button className="sn-sheet-button sn-ghost sn-wide">Sign out</button></SignOutButton>}
               </>
             ) : (
               <>
@@ -179,6 +220,60 @@ function Nav({ brand, signedIn, loading = false, clerk = false }: { brand: Brand
 
       {signedIn && <BottomTabs pathname={pathname} />}
     </>
+  );
+}
+
+function Avatar({ account, size = 34 }: { account?: Account; size?: number }) {
+  const initial = (account?.name || "?").trim()[0]?.toUpperCase() || "?";
+  return account?.imageUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img className="sn-avatar" src={account.imageUrl} alt="" width={size} height={size} />
+  ) : (
+    <span className="sn-avatar sn-avatar-initial" style={{ width: size, height: size }} aria-hidden>{initial}</span>
+  );
+}
+
+/** Always-visible plan status. Free plans that can upgrade link to pricing; others to billing. */
+function PlanBadge({ summary }: { summary: AccountSummary }) {
+  const p = summary.plan;
+  const upgrade = p.source === "free" && summary.upgrade;
+  const tone = p.source === "unlimited" ? "admin" : p.expiringSoon ? "expiring" : p.source === "free" ? "free" : p.source === "trial" ? "trial" : "paid";
+  return (
+    <Link href={upgrade ? "/pricing" : "/billing"} className={`sn-badge sn-badge-${tone}`} title={planBadgeText(p)}>
+      <span className="sn-badge-long">{planBadgeText(p)}{upgrade && <b> · Upgrade</b>}</span>
+      <span className="sn-badge-short">{p.source === "unlimited" ? "Admin" : p.name}</span>
+    </Link>
+  );
+}
+
+function AccountCard({ account, summary }: { account?: Account; summary: AccountSummary | null }) {
+  return (
+    <div className="sn-account-card">
+      <Avatar account={account} size={44} />
+      <div className="sn-account-text">
+        <strong>{account?.name || "Your account"}</strong>
+        {account?.email && <small>{account.email}</small>}
+        {summary && <span className={`sn-account-plan${summary.plan.expiringSoon ? " is-expiring" : ""}`}>{planBadgeText(summary.plan)}</span>}
+      </div>
+    </div>
+  );
+}
+
+function AccountLinks({ admin, pathname }: { admin: boolean; pathname: string }) {
+  const links = [
+    { title: "Edit profile & photo", href: "/dashboard/account" },
+    { title: "Change password", href: "/dashboard/account/security" },
+    { title: "Billing & usage", href: "/billing" },
+    ...(admin ? [{ title: "Administration", href: "/admin" }] : []),
+  ];
+  return (
+    <ul className="sn-list sn-account-links">
+      {links.map((l) => (
+        <li key={l.href}>
+          <Link href={l.href} aria-current={pathname === l.href ? "page" : undefined}><strong>{l.title}</strong></Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 

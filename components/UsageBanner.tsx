@@ -1,37 +1,10 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-type Usage = {
-  name: string;
-  unlimited?: boolean;
-  free: boolean;
-  upgrade: boolean;
-  nearing: string[];
-  usage: Record<string, number>;
-  limits: Record<string, number>;
-  reset: string;
-};
+import { useUser } from "@clerk/nextjs";
+import { useAccountSummary } from "@/components/nav/useAccountSummary";
 export default function UsageBanner() {
-  const [data, setData] = useState<Usage | null>(null);
-  useEffect(() => {
-    let active = true;
-    const load = () =>
-      void fetch("/api/usage", { cache: "no-store" })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((v) => {
-          if (active) setData(v);
-        })
-        .catch(() => {});
-    load();
-    window.addEventListener("card-studio-usage", load);
-    window.addEventListener("focus", load);
-
-    return () => {
-      active = false;
-      window.removeEventListener("card-studio-usage", load);
-      window.removeEventListener("focus", load);
-    };
-  }, []);
+  const { user } = useUser();
+  const data = useAccountSummary(user?.id ?? null);
   if (!data?.name) return null;
   if (data.unlimited)
     return (
@@ -57,7 +30,7 @@ export default function UsageBanner() {
         {data.nearing.map((k) => (
           <p key={k} className="text-sm mt-1">
             {k.replaceAll("_", " ")}: {data.usage[k] || 0} / {data.limits[k]}
-            {k.startsWith("monthly")
+            {k.startsWith("monthly") && data.reset
               ? ` · resets ${new Date(data.reset).toLocaleDateString("en-GB")}`
               : ""}
           </p>

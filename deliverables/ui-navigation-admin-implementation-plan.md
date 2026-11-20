@@ -7,6 +7,8 @@ Also included, approved after the build:
 - While sign-in loads, the header shows an "Account" link instead of an empty space.
 - Print package links to a new short explainer page (`/explore/print-package`) that says it is for Basic and Premium plans.
 
+**Phase 2 status:** implemented, not yet committed. One change from the plan: the plan badge loads in the browser from `/api/usage` (cached for the tab) instead of being rendered on the server. Server rendering would have run account checks on every public page, including the home page. The signed-in header, account menu and account page were checked with sample data only, because local sign-in needs Clerk development keys.
+
 ## 1. What the review found
 
 Evidence comes from the source code and from running the local app at desktop width and at 375 px.
