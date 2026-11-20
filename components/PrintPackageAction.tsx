@@ -1,4 +1,5 @@
 "use client";
+import InfoTip from "./InfoTip";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { CardData, StudioRecord } from "@/lib/types";
@@ -52,7 +53,7 @@ export default function PrintPackageAction({ record, data, signedIn, disabled, d
     finally { inFlight.current = false; setSaving(false); }
   }
   return <section id="print-package" className="cs-panel flex flex-col gap-3 scroll-mt-6" aria-label="Print package">
-    <div><h2 className="font-bold">Print package</h2><p className="text-sm cs-muted">Front PDF, back PDF, and mockup PNG in one ZIP.</p></div>
+    <div><h2 className="font-bold flex items-center gap-2">Print package <InfoTip label="What is a print package?">Print-ready files of your published card: a front PDF, a back PDF and a mockup picture, in one download. Send them to any printer. Choose 3 mm bleed if your printer trims cards after printing.</InfoTip></h2><p className="text-sm cs-muted">Front PDF, back PDF, and mockup PNG in one ZIP.</p></div>
     <p className="text-xs cs-muted">85.6 × 54 mm landscape · {mode === "dynamic" ? "Online profile QR" : "Offline contact QR"} · RGB artwork</p>
     {!signedIn ? <Link className="cs-button" href="/sign-in">Sign in for print packages</Link> : access === "denied" ? <><p className="text-sm cs-muted">Included with Basic and Premium.</p><Link className="cs-button cs-primary text-center" href="/pricing">Upgrade to download print package</Link></> : <>
       <label className="text-sm" htmlFor="print-preset">Printer size</label>

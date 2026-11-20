@@ -6,6 +6,7 @@ import { SignOutButton, useUser } from "@clerk/nextjs";
 import { helpLinks, isActive, productFeature, products, workLinks, type Product } from "@/lib/navigation";
 import { ArrowUpRightIcon, ChevronDownIcon, CloseIcon, FolderIcon, HomeIcon, MenuIcon, PlusIcon, UserIcon } from "@/components/icons";
 import ProductIcon from "./ProductIcon";
+import { tourFor, TOUR_EVENT } from "@/lib/tours";
 import { useAccountSummary } from "./useAccountSummary";
 import type { AccountSummary } from "@/lib/billing/account-summary";
 import { planBadgeText } from "@/lib/billing/account-plan";
@@ -49,6 +50,7 @@ function ClerkNav({ brand }: { brand: BrandInfo }) {
 function Nav({ brand, signedIn, loading = false, clerk = false, account, summary = null }: { brand: BrandInfo; signedIn: boolean; loading?: boolean; clerk?: boolean; account?: Account; summary?: AccountSummary | null }) {
   const pathname = usePathname() || "/";
   const visible = useVisibleProducts();
+  const pageTour = tourFor(pathname);
   const [menu, setMenu] = useState<Menu>(null);
   const [sheet, setSheet] = useState(false);
   const root = useRef<HTMLElement>(null);
@@ -131,6 +133,7 @@ function Nav({ brand, signedIn, loading = false, clerk = false, account, summary
               {menu === "help" && (
                 <div className="sn-panel sn-panel-list" id="menu-help">
                   <p className="sn-eyebrow">Help</p>
+                  {pageTour && <TourButton onStart={() => { setMenu(null); window.dispatchEvent(new Event(TOUR_EVENT)); }} />}
                   <LinkList links={helpLinks} pathname={pathname} />
                 </div>
               )}
@@ -218,6 +221,7 @@ function Nav({ brand, signedIn, loading = false, clerk = false, account, summary
           )}
           <section>
             <h2 className="sn-eyebrow">Help</h2>
+            {pageTour && <TourButton onStart={() => { setSheet(false); window.dispatchEvent(new Event(TOUR_EVENT)); }} />}
             <LinkList links={[{ title: "Pricing", href: "/pricing", summary: "Free, Basic and Premium plans." }, ...helpLinks]} pathname={pathname} />
           </section>
           <section className="sn-sheet-account">
@@ -237,6 +241,15 @@ function Nav({ brand, signedIn, loading = false, clerk = false, account, summary
 
       {signedIn && <BottomTabs pathname={pathname} />}
     </>
+  );
+}
+
+function TourButton({ onStart }: { onStart: () => void }) {
+  return (
+    <button type="button" className="sn-tour-button" onClick={onStart}>
+      <strong>Show me how this page works</strong>
+      <small>A short step-by-step guide.</small>
+    </button>
   );
 }
 

@@ -288,3 +288,39 @@ button:disabled{opacity:.45;cursor:not-allowed}
   .acct-meters { grid-template-columns: 1fr; }
   .acct-actions .cs-button { flex: 1 1 calc(50% - 10px); justify-content: center; }
 }
+
+/* Dashboard welcome */
+.dw { margin-bottom: 28px; }
+.dw-create { list-style: none; margin: 18px 0 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.dw-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; height: 100%; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 700; font-size: .9rem; transition: border-color .15s, transform .15s; }
+.dw-tile:hover { border-color: var(--brand-primary); transform: translateY(-1px); }
+.dw-recent { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.dw-recent-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.dw-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.dw-list a { display: grid; gap: 2px; padding: 9px 0; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+.dw-list li:first-child a { border-top: 0; }
+.dw-list a:hover strong { text-decoration: underline; }
+.dw-list small { color: var(--muted); font-size: .8rem; text-transform: none; }
+@media (max-width: 900px) { .dw-create { grid-template-columns: repeat(3, minmax(0, 1fr)); } .dw-recent { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .dw-create { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Explain-a-term tooltip */
+.cs-tip { position: relative; display: inline-flex; vertical-align: middle; font-weight: 400; text-transform: none; letter-spacing: normal; }
+.cs-tip-button {
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  border: 1px solid var(--field-line); background: var(--field); color: var(--muted);
+  font-size: 12px; font-weight: 700; line-height: 1; cursor: pointer; padding: 0;
+}
+/* A larger invisible target for fingers without changing the look. */
+.cs-tip-button::after { content: ""; position: absolute; inset: -11px; }
+.cs-tip-button:hover, .cs-tip-button[aria-expanded="true"] { color: var(--brand-primary); border-color: var(--brand-primary); }
+.cs-tip-bubble {
+  position: absolute; z-index: 35; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  width: min(300px, calc(100vw - 32px)); display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
+  box-shadow: 0 14px 34px #0000002b; font-size: 13.5px; line-height: 1.5; text-align: left;
+}
+.cs-tip-bubble strong { font-size: 13.5px; }
+@media (max-width: 640px) {
+  .cs-tip-bubble { position: fixed; top: auto; left: 16px; right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); transform: none; width: auto; }
+}

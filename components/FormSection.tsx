@@ -9,6 +9,7 @@ export default function FormSection({
 }) {
   return (
     <section
+      data-tour={`section-${n}`}
       className="rounded-2xl border overflow-hidden"
       style={{ background: "var(--surface)", borderColor: "var(--line)" }}
     >
