@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/features";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -10,7 +11,7 @@ export const runtime="nodejs";
 const requestSchema=z.object({operation_id:z.uuid(),design_id:z.uuid(),design:stampDesignSchema}).strict();
 export async function POST(req:Request){
   try{
-    checkOrigin(req); const user = await requireUser("Sign in to generate and download stamps.");
+    checkOrigin(req); const user = await requireUser("Sign in to generate and download stamps."); await requireFeature("stamps");
     await rateLimit(user.id,"stamp-generation",60,60);
     const request=requestSchema.parse(await readJson(req,750_000));
     const c=createAdminClient();

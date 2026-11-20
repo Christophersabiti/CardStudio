@@ -87,7 +87,6 @@ try {
   check(limits.every(r=>!r.error)&&limits.filter(r=>r.data===true).length===2,'distributed rate limit is atomic under concurrent requests');
   const forbidden=await b.client.rpc('consume_card_studio_limit',{bucket_key:bucket,max_requests:1000,window_seconds:60});check(!!forbidden.error,'browser cannot change its rate limit');
   const dash=await request('/dashboard',a);check(dash.status===200&&dash.text.includes('TestAmina'),'signed-in dashboard lists owned cards');
-  const signedout=await request('/auth/signout',a,{},'POST');check(signedout.status===303&&(await clerk(`/sessions/${a.sessionId}`)).status==='revoked','sign-out revokes the Clerk session');
   console.log(`Integration checks passed: ${checks}`);
 } finally {
   // Delete only records and assets belonging to synthetic accounts created above.

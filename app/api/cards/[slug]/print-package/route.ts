@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/features";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/session";
 import { activeBrand } from "@/lib/brand";
@@ -19,6 +20,7 @@ export async function POST(req: Request, {params}: {params: Promise<{slug:string
   try {
     checkOrigin(req);
     const user = await requireUser("Sign in to download a print package.");
+    await requireFeature("print_package");
     await rateLimit(user.id,"print-package",6);
     const {slug} = await params;
     const raw = await readJson(req,2048);

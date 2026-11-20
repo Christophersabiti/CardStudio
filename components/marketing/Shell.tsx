@@ -1,15 +1,20 @@
 import Link from "next/link";
-import Navigation from "./Navigation";
-import { featureHref, navigation } from "@/lib/marketing";
-import { isClerkConfigured } from "@/lib/auth/config";
+import SiteHeader from "@/components/nav/SiteHeader";
+import { companyLinks, helpLinks, products } from "@/lib/navigation";
 import "./marketing.css";
+
 export default function Shell({ children }: { children: React.ReactNode }) {
+  const columns = [
+    { title: "Create", links: products.map((p) => ({ title: p.title, href: p.href })) },
+    { title: "Help", links: helpLinks },
+    { title: "Card Studio", links: companyLinks },
+  ];
   return (
     <div className="mk">
       <a className="mk-skip" href="#main-content">
         Skip to content
       </a>
-      <Navigation authEnabled={isClerkConfigured()} />
+      <SiteHeader />
       {children}
       <footer className="mk-footer">
         <div>
@@ -24,12 +29,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             Keep the connection.
           </p>
         </div>
-        {Object.entries(navigation).map(([label, links]) => (
-          <div key={label}>
-            <h2>{label}</h2>
-            {links.map(([title, , slug]) => (
-              <Link key={slug} href={featureHref(slug)}>
-                {title}
+        {columns.map((column) => (
+          <div key={column.title}>
+            <h2>{column.title}</h2>
+            {column.links.map((link) => (
+              <Link key={link.href} href={link.href}>
+                {link.title}
               </Link>
             ))}
           </div>

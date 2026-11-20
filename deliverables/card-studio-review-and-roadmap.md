@@ -82,12 +82,12 @@ Estimated effort: 6–10 working days. Dependency: Phase 1 for the full publishi
 - Build a short Identity → Contact → Design → Publish journey with mobile Edit/Preview switching.
 - Use a dedicated recipient profile with large actions, complete details, and clear Save contact guidance.
 - Add native sharing with copy-link fallback, WhatsApp sharing, international phone formatting, and share-preview metadata.
-- Offer three purposeful layouts: professional, association/member, and event/networking; include image cropping and reusable colors.
+- Offer three purposeful layouts: professional, association/member, and event/networking; include image cropping and reusable colours.
 - Generate consistent PNG exports from a fixed layout; move Copy vCard into an advanced menu.
 
 Exit gate: in a five-person usability pilot, at least four users create and share a valid card unaided within three minutes. This is a proposed target, not an observed result. Verify keyboard operation, common mobile widths, long names, dark mode, and real-device sharing/import behavior.
 
-### Phase 3 — Organization and group value
+### Phase 3 — Organisation and group value
 
 Estimated effort: 10–15 working days. Dependency: Phases 1–2.
 

@@ -2,20 +2,21 @@ import UsageBanner from "@/components/UsageBanner";
 /* eslint-disable react-hooks/purity -- Request-time server rendering of expiry dates; no client render clock. */
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/nav/SiteHeader";
 import BillingActions from "@/components/BillingActions";
-import { activeBrand } from "@/lib/brand";
 import { currentUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import { catalog, money } from "@/lib/billing/catalog";
 import { pesapalReady } from "@/lib/billing/pesapal";
+import { usagePeriod } from "@/lib/billing/account-summary";
+import { describePlan, planSentence } from "@/lib/billing/account-plan";
 export default async function Billing() {
   const u = await currentUser();
   if (!u) redirect("/sign-in?next=/billing");
   if (u.appRole === "superadmin")
     return (
       <>
-        <Header brand={activeBrand} />
+        <SiteHeader />
         <main className="max-w-5xl mx-auto px-5 pb-16">
           <h1 className="text-3xl font-bold">Your access</h1>
           <section className="cs-panel mt-6">
@@ -63,15 +64,12 @@ export default async function Billing() {
   if (e.error || s.error || t.error || usage.error || orders.error || profile.error)
     throw Error("Billing unavailable");
   const zone=profile.data?.timezone||"UTC";
-  const periodParts=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit"}).formatToParts(new Date());
-  const period=`${periodParts.find(p=>p.type==="year")?.value}-${periodParts.find(p=>p.type==="month")?.value}`;
-  const [year,month]=period.split("-").map(Number),localMidnight=Date.UTC(year,month,1);
-  const resetParts=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date(localMidnight));
-  const part=(type:string)=>Number(resetParts.find(p=>p.type===type)?.value);
-  const nextReset=new Date(localMidnight-(Date.UTC(part("year"),part("month")-1,part("day"),part("hour"),part("minute"))-localMidnight));
+  const { period, reset } = usagePeriod(zone);
+  const nextReset = new Date(reset);
+  const plan = describePlan({ plan: e.data, subscription: s.data, trial: t.data });
   return (
     <>
-      <Header brand={activeBrand} />
+      <SiteHeader />
       <main className="max-w-6xl mx-auto px-5 pb-16">
         <div className="flex justify-between gap-4">
           <div>
@@ -87,15 +85,11 @@ export default async function Billing() {
         <UsageBanner />
         <section className="cs-panel my-6">
           <h2 className="text-xl">Current plan: {e.data.name}</h2>
-          <p className="cs-muted mt-2">
-            {s.data.status === "active"
-              ? `Paid until ${new Date(s.data.current_period_end).toLocaleDateString("en-GB")}. Renew manually to continue your paid plan.`
-              : "No automatic recurring charges."}
-          </p>
-          {t.data && (
-            <p className="mt-2">
-              Trial {Date.parse(t.data.ends_at) > Date.now() ? "ends" : "ended"}{" "}
-              {new Date(t.data.ends_at).toLocaleDateString("en-GB")}.
+          <p className="cs-muted mt-2">{planSentence(plan)}</p>
+          <p className="cs-muted mt-1 text-sm">No automatic recurring charges.</p>
+          {t.data && plan.source !== "trial" && Date.parse(t.data.ends_at) <= Date.now() && (
+            <p className="mt-2 text-sm">
+              Your trial ended {new Date(t.data.ends_at).toLocaleDateString("en-GB")}.
             </p>
           )}
           {cat.settings.trial_enabled &&

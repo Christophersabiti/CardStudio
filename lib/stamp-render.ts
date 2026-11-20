@@ -56,10 +56,11 @@ function curve([p0, p1, p2]: Point[]) {
     if (k) len.push(len[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
   }
   const total = len[len.length - 1];
+  // Beyond either end, continue along the end tangent so over-long text
+  // spreads out instead of stacking glyphs on the endpoint.
   const at = (d: number) => {
-    const target = Math.max(0, Math.min(total, d));
-    let k = 1; while (k < len.length - 1 && len[k] < target) k++;
-    const f = (target - len[k - 1]) / ((len[k] - len[k - 1]) || 1);
+    let k = 1; while (k < len.length - 1 && len[k] < d) k++;
+    const f = (d - len[k - 1]) / ((len[k] - len[k - 1]) || 1);
     const [a, b] = [pts[k - 1], pts[k]];
     return { x: a[0] + (b[0] - a[0]) * f, y: a[1] + (b[1] - a[1]) * f, angle: Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI };
   };

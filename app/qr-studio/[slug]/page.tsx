@@ -1,10 +1,9 @@
 import { notFound, redirect } from "next/navigation";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/nav/SiteHeader";
 import Builder from "@/components/qr-studio/Builder";
 import { currentUser } from "@/lib/auth/session";
 import { ownedQr, qrFeatures } from "@/lib/qr-studio/server";
 import { qrDraftSchema } from "@/lib/qr-studio/schema";
-import { activeBrand } from "@/lib/brand";
 import "@/components/qr-studio/qr-studio.css";
 export default async function Page({
   params,
@@ -18,7 +17,7 @@ export default async function Page({
   if (q.deleted_at || q.archived_at) redirect("/dashboard/qr");
   return (
     <>
-      <Header brand={activeBrand} />
+      <SiteHeader />
       <main>
         <Builder
           key={q.id}

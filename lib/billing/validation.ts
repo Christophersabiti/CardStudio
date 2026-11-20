@@ -61,6 +61,40 @@ export const adminSchema = z.union([
     })
     .strict(),
 ]);
+/** Actions that use their own database functions rather than admin_commercial_update. */
+export const grantSchema = z
+  .object({
+    action: z.literal("grant_plan"),
+    target: z.uuid(),
+    body: z
+      .object({
+        plan_id: z.uuid(),
+        months: z.number().int().min(1).max(24),
+        reference: z.string().trim().min(2).max(120),
+        note: z.string().trim().max(500).default(""),
+        amount_minor: z.number().int().min(0).max(100000000000).nullable().default(null),
+        currency: z.enum(["UGX", "KES", "USD"]).nullable().default(null),
+      })
+      .strict()
+      .refine((v) => (v.amount_minor === null) === (v.currency === null), "Enter both an amount and a currency, or neither."),
+  })
+  .strict();
+export const revokeSchema = z
+  .object({
+    action: z.literal("revoke_grant"),
+    target: z.uuid(),
+    body: z.object({ reason: z.string().trim().min(5).max(300) }).strict(),
+  })
+  .strict();
+export const featureKeys = ["cards", "groups", "qr_codes", "email_signature", "stamps", "print_package"] as const;
+export const featureSchema = z
+  .object({
+    action: z.literal("feature"),
+    body: z.object({ key: z.enum(featureKeys), enabled: z.boolean() }).strict(),
+  })
+  .strict();
+export const adminActionSchema = z.union([adminSchema, grantSchema, revokeSchema, featureSchema]);
+
 export function verifiedAmountMinor(value: unknown, exponent: number) {
   if (typeof value !== "number" && typeof value !== "string")
     throw Error("Invalid amount");

@@ -43,6 +43,8 @@ function SessionGuardSession({ children }: { children: React.ReactNode }) {
         for (const k of Object.keys(localStorage))
           if (k.startsWith("card_studio_v2:") && !k.includes(":guest:"))
             localStorage.removeItem(k);
+        for (const k of Object.keys(sessionStorage))
+          if (k.startsWith("card_studio_plan:")) sessionStorage.removeItem(k);
       } catch {
         /* Storage restrictions must not prevent logout. */
       }

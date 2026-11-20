@@ -1,4 +1,5 @@
 import "server-only";
+import { requireFeature } from "@/lib/features";
 import type { CardData, RecordKind, StudioRecord } from "./types";
 import { createAdminClient } from "./supabase/server";
 import { needsOnboarding, requireUser } from "./auth/session";
@@ -33,6 +34,7 @@ export async function recordEndpoint(req: Request, kind: RecordKind, slug?: stri
     const raw = await readJson(req);
     const client = createAdminClient();
     if (!slug) {
+      await requireFeature(kind === "cards" ? "cards" : "groups");
       const body = createSchema.parse(raw);
       const previous = await client.from(kind).select("*").eq("id",body.id).eq("owner_id",user.id).maybeSingle();
       if (previous.error) throw previous.error;

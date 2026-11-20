@@ -2,7 +2,7 @@ import { ArrowUpRightIcon } from "@/components/icons";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import Shell from "@/components/marketing/Shell";
-import { featureCopy, featureHref } from "@/lib/marketing";
+import { featureCopy, featureHref, retiredPaths } from "@/lib/marketing";
 export function generateStaticParams() {
   return Object.keys(featureCopy).filter((slug) => featureHref(slug) === `/explore/${slug}`).map((slug) => ({ slug }));
 }
@@ -12,6 +12,7 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  if (retiredPaths[slug]) redirect(retiredPaths[slug]);
   if (featureHref(slug) !== `/explore/${slug}`) redirect(featureHref(slug));
   const page = featureCopy[slug];
   if (!page) notFound();
@@ -19,7 +20,7 @@ export default async function Page({
     <Shell>
       <main id="main-content" className="mk-detail">
         <p className="mk-eyebrow">
-          {page.planned ? "On the roadmap" : "Explore Card Studio"}
+          Explore Card Studio
         </p>
         <h1>{page.title}</h1>
         <p className="mk-lead">{page.intro}</p>
@@ -31,7 +32,7 @@ export default async function Page({
             </article>
           ))}
         </div>
-        <Link className="mk-button" href={slug === "qr-sharing" ? "/qr-studio" : "/studio"}>
+        <Link className="mk-button" href={slug === "qr-sharing" ? "/qr-studio" : slug === "group-contacts" || slug === "teams" ? "/studio?mode=groups" : "/studio"}>
           Open the studio <ArrowUpRightIcon />
         </Link>
         {slug === "contact" && (

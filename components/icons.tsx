@@ -128,3 +128,44 @@ export const CopyIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M16 8V4H4v12h4" />
   </svg>
 );
+
+// ---------------------------------------------------------------------------
+// Navigation icons — line style, sized by the caller (default 1em).
+const nav = { ...base, width: "1em", height: "1em", "aria-hidden": true, focusable: "false" } as const;
+
+export const CardIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><rect x="2" y="5" width="20" height="14" rx="2" /><circle cx="8" cy="11" r="2" /><path d="M5.5 16c.6-1.4 1.5-2 2.5-2s1.9.6 2.5 2M14 10h5M14 14h3" /></svg>
+);
+export const QrIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 14h3v3M21 14v0M14 21h3M21 18v3" /></svg>
+);
+export const StampIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><path d="M9 3h6l-1 7h-4z" /><path d="M4 14h16v4H4zM6 21h12" /><path d="M8 10h8l1 4H7z" /></svg>
+);
+export const PrinterIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><path d="M6 9V3h12v6" /><rect x="3" y="9" width="18" height="8" rx="2" /><path d="M6 14h12v7H6z" /></svg>
+);
+export const MenuIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+);
+export const CloseIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><path d="M6 6l12 12M18 6 6 18" /></svg>
+);
+export const ChevronDownIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><path d="m6 9 6 6 6-6" /></svg>
+);
+export const HelpIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01" /></svg>
+);
+export const HomeIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /></svg>
+);
+export const PlusIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><circle cx="12" cy="12" r="9" /><path d="M12 8v8M8 12h8" /></svg>
+);
+export const FolderIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+);
+export const UserIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...nav} {...p}><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></svg>
+);
