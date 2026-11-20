@@ -13,6 +13,8 @@ Also included, approved after the build:
 
 Deploy order: apply `supabase/migrations/20261120191455_admin_manual_grants.sql` to the database **before** this code goes live. Until then the admin Users, Premium and Features sections show a setup notice and product switches default to on. The migration was tested against the full local migration history in PGlite (`tests/admin-grants.test.ts`); it has not been applied to any hosted database. Checked in the browser with sample data only.
 
+**Phase 3 status:** implemented, not yet committed. Walkthroughs start by themselves on a first visit to each tool and can be replayed from Help → "Show me how this page works". One change from the plan: completion is remembered in the browser (localStorage), not in a new `profiles.onboarding_state` column, so no database change was needed; someone on a new device sees each walkthrough once more. The home page, walkthroughs and tooltips were checked in the browser at desktop and phone widths. The dashboard welcome needs a signed-in account and has not been seen yet.
+
 ## 1. What the review found
 
 Evidence comes from the source code and from running the local app at desktop width and at 375 px.

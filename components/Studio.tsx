@@ -1,6 +1,7 @@
 "use client";
 import { ArrowUpRightIcon } from "@/components/icons";
 
+import InfoTip from "./InfoTip";
 import CardFrame from "@/components/CardFrame";
 
 import Link from "next/link";
@@ -173,11 +174,11 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
         <div className="cs-panel grid place-items-center"><CardFrame>
           {kind==="cards"?<CardPreview appearance={previewAppearance} data={data as CardData} qrUrl={qr} brand={brand} qrLabel={qrMode==="dynamic"?"Scan to view my profile":"Scan to save my contact"}/>:<GroupPreview data={data as GroupData} qrUrl={qr} brand={brand}/>}
         </CardFrame></div>
-        <div className="cs-panel flex flex-col gap-3">
-          <h2 className="font-bold">Save and publish</h2>
+        <div className="cs-panel flex flex-col gap-3" data-tour="publish">
+          <h2 className="font-bold flex items-center gap-2">Save and publish <InfoTip label="Save draft or publish?">Saving keeps a private draft only you can see. Publishing makes your card visible at its link. When you publish again, the same link shows the new version.</InfoTip></h2>
           {!userId?<><p className="text-sm cs-muted">Your draft is saved in this browser. Sign in to save it online, publish a link, and make updates later.</p><Link className="cs-button cs-primary text-center" href={`/sign-in?next=${encodeURIComponent(`/studio?mode=${kind}`)}`}>Sign in to save</Link></>:<>
             <p className="text-sm cs-muted">Drafts are private. Published cards can be viewed by anyone with the link.</p>
-            {kind==="groups" && <label className="flex gap-3 text-sm items-start"><input type="checkbox" className="mt-1" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I am authorized to share every member’s contact details publicly. Anyone with this link can download the full group.</span></label>}
+            {kind==="groups" && <div className="flex gap-2 items-start"><label className="flex gap-3 text-sm items-start"><input type="checkbox" className="mt-1" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I am authorized to share every member’s contact details publicly. Anyone with this link can download the full group.</span></label><InfoTip label="Why do I need to confirm this?">A published group lets anyone with the link download every member’s contact details. Only publish if each member has agreed to be shared this way.</InfoTip></div>}
             <div className="flex flex-wrap gap-2">
               <button className="cs-button" disabled={busy || !ready || (!dirty && !!record)} onClick={()=>save("save")}>{busy?"Saving…":"Save private draft"}</button>
               <button className="cs-button cs-primary" disabled={busy || !ready || (kind==="groups"&&!consent)} onClick={()=>save("publish")}>{record?.published?"Publish updates":"Publish card"}</button>
@@ -190,8 +191,8 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
           {error && <p role="alert" className="cs-error">{error}{error.includes("plan limit")&&<Link href="/pricing" className="cs-button ml-3">Upgrade plan</Link>}</p>}
           {kind==="groups" && <p className="text-xs cs-muted">Contact-import steps vary by phone. Downloading a file does not confirm that every contact was added.</p>}
         </div>
-        {kind==="cards" && <div className="cs-panel text-sm flex flex-col gap-2">
-          <label htmlFor="qr-type" className="font-semibold">QR type</label>
+        {kind==="cards" && <div className="cs-panel text-sm flex flex-col gap-2" data-tour="qr-type">
+          <span className="flex items-center gap-2"><label htmlFor="qr-type" className="font-semibold">QR type</label><InfoTip label="Online or offline QR?">An online profile QR opens your published card on the web, so it always shows your latest details. An offline QR stores your contact details inside the code itself: it works without internet, but it can never be updated or switched off.</InfoTip></span>
           <select id="qr-type" className="cs-input" value={qrMode} disabled={busy || !ready} onChange={e=>setData(current=>({...current,qrMode:e.target.value as "dynamic"|"offline"}))}>
             <option value="offline">Offline contact QR · fixed snapshot</option>
             <option value="dynamic">Online profile QR · stays up to date (default)</option>
@@ -200,7 +201,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
         </div>}
         {(kind==="groups" || qrMode==="dynamic") && !matchesPublished && <p role="status" className="text-sm cs-muted">Publish the current details to enable the profile QR and sharing. Any existing public link still shows the last published version.</p>}
         {qrError && <p role="alert" className="cs-error">{qrError}</p>}
-        {kind==="cards"?<CardActions data={data as CardData} firstName={(data as CardData).firstName} lastName={(data as CardData).lastName} qrAccent={brand.colors.primary} vcard={vcard} qrUrl={qr} fileBase={contactFileBase(data as CardData)} disabled={!validated.success || busy}/>:<GroupActions vcard={vcard} qrUrl={qr} fileBase={groupFileBase(data as GroupData)} memberCount={(data as GroupData).members.length} disabled={!validated.success || busy}/>}
+        <div data-tour="downloads">{kind==="cards"?<CardActions data={data as CardData} firstName={(data as CardData).firstName} lastName={(data as CardData).lastName} qrAccent={brand.colors.primary} vcard={vcard} qrUrl={qr} fileBase={contactFileBase(data as CardData)} disabled={!validated.success || busy}/>:<GroupActions vcard={vcard} qrUrl={qr} fileBase={groupFileBase(data as GroupData)} memberCount={(data as GroupData).members.length} disabled={!validated.success || busy}/>}</div>
         {kind === "cards" && <PrintPackageAction record={record} data={data as CardData} signedIn={!!userId} disabled={busy || !ready || !validated.success} dirty={dirty} matchesPublished={matchesPublished} />}
       </div>
     </div>

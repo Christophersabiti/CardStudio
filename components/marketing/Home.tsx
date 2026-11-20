@@ -20,7 +20,7 @@ const steps = [
     text: "Keep your profile link and publish fresh details whenever things change. Your next scan opens the latest version.",
   },
 ];
-export default function Home() {
+export default function Home({ showcase }: { showcase?: React.ReactNode }) {
   const [step, setStep] = useState(0);
   return (
     <main id="main-content">
@@ -45,9 +45,9 @@ export default function Home() {
             <Link className="mk-button" href="/studio">
               Create your card <span aria-hidden><ArrowUpRightIcon /></span>
             </Link>
-            <Link className="mk-text-link" href="/explore/teams">
-              Explore for teams <span aria-hidden>→</span>
-            </Link>
+            <a className="mk-text-link" href="#make">
+              See everything you can make <span aria-hidden>↓</span>
+            </a>
           </div>
           <p className="mk-fine">
             Start with a private draft. Publish when you’re ready.
@@ -101,6 +101,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {showcase}
       <section className="mk-ribbon" aria-label="Ways to connect">
         <span>Built for real conversations</span>
         <strong>Meetings</strong>

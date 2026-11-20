@@ -1,0 +1,53 @@
+.tour-root { position: fixed; inset: 0; z-index: 70; font-family: var(--font-sans), system-ui, sans-serif; }
+.tour-shield { position: absolute; inset: 0; }
+.tour-dim { position: absolute; inset: 0; background: rgba(12, 14, 24, 0.55); }
+.tour-veil { position: fixed; background: rgba(12, 14, 24, 0.55); pointer-events: none; }
+.tour-spot {
+  position: fixed;
+  border-radius: 14px;
+  box-shadow: 0 0 0 3px var(--brand-primary, #5748cc);
+  pointer-events: none;
+  transition: top 0.2s, left 0.2s, width 0.2s, height 0.2s;
+}
+.tour-card {
+  position: fixed;
+  z-index: 1;
+  background: var(--surface, #fff);
+  color: var(--ink, #1a1720);
+  border: 1px solid var(--line, #eae3dc);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  padding: 18px 18px 14px;
+  outline: none;
+}
+.tour-card-center { top: 50%; left: 50%; width: min(380px, calc(100vw - 32px)); transform: translate(-50%, -50%); }
+.tour-count { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--muted, #6b6270); }
+.tour-card h2 { margin: 0 0 6px; font-size: 18px; line-height: 1.25; letter-spacing: -0.01em; }
+.tour-card p#tour-body { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--ink, #1a1720); }
+.tour-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; }
+.tour-actions > div { display: flex; gap: 8px; }
+.tour-button, .tour-skip {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tour-button { border: 1px solid var(--line, #eae3dc); background: transparent; color: inherit; }
+.tour-primary { background: var(--brand-primary, #5748cc); border-color: var(--brand-primary, #5748cc); color: #fff; }
+.tour-skip { border: 0; background: none; color: var(--muted, #6b6270); padding: 0 4px; }
+.tour-skip:hover { color: var(--ink, #1a1720); text-decoration: underline; }
+.tour-card :focus-visible { outline: 3px solid var(--brand-primary, #5748cc); outline-offset: 2px; }
+
+@media (max-width: 640px) {
+  .tour-card:not(.tour-card-center) {
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    top: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } }
+@media print { .tour-root { display: none; } }
