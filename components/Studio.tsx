@@ -156,7 +156,7 @@ function Editor({brand,kind,userId,initial}: {brand:Brand;kind:RecordKind;userId
   return <>
     <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
       <div><h1 className="text-xl font-bold">{record?"Edit":"Create"} {kind==="cards"?"card":"group"}</h1><p className="text-sm cs-muted mt-2" role="status">{!record?"Local draft · not published":dirty?"Unsaved changes":record.published?(matchesPublished?"Published · up to date":"Draft saved · unpublished changes"):"Private draft"}</p></div>
-      {userId && <Link href="/dashboard" className="cs-button">My cards</Link>}
+      {userId && <Link href={`/designs?kind=${kind==="groups"?"group":"card"}`} className="cs-button">← My designs</Link>}
     </div>
     {draftNotice && <p className="cs-panel text-sm mb-4" role="status">{draftNotice}</p>}
     <a href="#live-preview" className="cs-preview-jump">Preview {kind==="cards"?"card":"group"} ↓</a>

@@ -46,10 +46,10 @@ export const helpLinks: NavLink[] = [
 ];
 
 export const workLinks: NavLink[] = [
-  { title: "My cards", href: "/dashboard", summary: "Cards and team contacts you have saved." },
-  { title: "My QR codes", href: "/dashboard/qr", summary: "Dynamic QR codes and their scans." },
+  { title: "My designs", href: "/designs", summary: "Every card, QR code, stamp, signature and print package you saved." },
+  { title: "QR scan statistics", href: "/dashboard/qr", summary: "Opens, clicks and archived QR codes." },
   { title: "Billing & usage", href: "/billing", summary: "Your plan, limits and receipts." },
-  { title: "Trash", href: "/dashboard?trash=1", summary: "Restore something you deleted." },
+  { title: "Trash", href: "/designs?section=trash", summary: "Restore something you deleted." },
 ];
 
 export const companyLinks: NavLink[] = [

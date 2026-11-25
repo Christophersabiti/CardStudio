@@ -38,8 +38,8 @@ export default async function Billing() {
               <Link href="/admin?tab=plans" className="cs-button cs-primary">
                 Manage customer plans
               </Link>
-              <Link href="/dashboard" className="cs-button">
-                My cards
+              <Link href="/designs" className="cs-button">
+                My designs
               </Link>
             </div>
           </section>
@@ -78,8 +78,8 @@ export default async function Billing() {
               Manage your plan and keep track of your capacity.
             </p>
           </div>
-          <Link href="/dashboard" className="cs-button self-start">
-            My cards
+          <Link href="/designs" className="cs-button self-start">
+            My designs
           </Link>
         </div>
         <UsageBanner />

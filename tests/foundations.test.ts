@@ -24,6 +24,9 @@ test('rejects dangerous URLs, credentials, unknown social platforms and hostile 
 test('safe redirects cannot leave the application',()=>{
   for(const next of ['//evil.test','https://evil.test','/\\evil.test','/dashboard/../../auth/signout','/edit/cards/abc123?next=//evil.test'])assert.equal(safeNext(next),'/dashboard');
   assert.equal(safeNext('/edit/cards/abc123'),'/edit/cards/abc123');
+  assert.equal(safeNext('/designs?kind=stamp'),'/designs?kind=stamp');
+  assert.equal(safeNext('/designs/print/new'),'/designs/print/new');
+  assert.equal(safeNext('/designs/../auth/signout'),'/dashboard');
   assert.equal(safeNext('/?mode=groups'),'/?mode=groups');
 });
 test('content comparison catches stale group data and ignores JSONB key ordering',()=>{

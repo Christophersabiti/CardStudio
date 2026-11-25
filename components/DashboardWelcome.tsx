@@ -35,7 +35,7 @@ export default function DashboardWelcome({ products, qr, stamps }: { products: P
             <div className="cs-panel">
               <div className="dw-recent-head">
                 <h2 className="font-bold">Recent QR codes</h2>
-                <Link href="/dashboard/qr" className="text-sm underline">See all</Link>
+                <Link href="/designs?kind=qr" className="text-sm underline">See all</Link>
               </div>
               {qr.length ? (
                 <ul className="dw-list">
@@ -59,13 +59,13 @@ export default function DashboardWelcome({ products, qr, stamps }: { products: P
             <div className="cs-panel">
               <div className="dw-recent-head">
                 <h2 className="font-bold">Saved stamps</h2>
-                <Link href="/stamp-maker" className="text-sm underline">Open stamp maker</Link>
+                <Link href="/designs?kind=stamp" className="text-sm underline">See all</Link>
               </div>
               {stamps.length ? (
                 <ul className="dw-list">
                   {stamps.map((s) => (
                     <li key={s.id}>
-                      <Link href="/stamp-maker">
+                      <Link href={`/stamp-maker?design=${s.id}`}>
                         <strong>{s.name || "Untitled stamp"}</strong>
                         <small>Saved {when(s.updated_at)}</small>
                       </Link>

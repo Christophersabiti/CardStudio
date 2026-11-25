@@ -67,7 +67,7 @@ export default async function Page({
         <div className="qr-studio-heading">
           <div>
             <p className="qr-eyebrow">Your collection</p>
-            <h1>My QR codes.</h1>
+            <h1>QR codes and scans.</h1>
             <p className="qr-muted">Keep the code. Update what it opens.</p>
           </div>
           <Link className="cs-button cs-primary" href="/qr-studio">
@@ -85,7 +85,7 @@ export default async function Page({
               {s[0].toUpperCase() + s.slice(1)}
             </Link>
           ))}
-          <Link href="/dashboard">Contact cards <ArrowUpRightIcon /></Link>
+          <Link href="/designs">All my designs <ArrowUpRightIcon /></Link>
         </nav>
         <Collection items={r.data as QrRecord[]} metrics={metrics} />
         <nav className="qr-inline">

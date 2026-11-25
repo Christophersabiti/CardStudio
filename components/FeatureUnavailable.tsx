@@ -10,7 +10,7 @@ export default function FeatureUnavailable({ name }: { name: string }) {
       </p>
       <div className="flex flex-wrap justify-center gap-3 mt-8">
         <Link href="/create" className="cs-button cs-primary">See what else you can make</Link>
-        <Link href="/dashboard" className="cs-button">My cards</Link>
+        <Link href="/designs" className="cs-button">My designs</Link>
       </div>
     </main>
   );

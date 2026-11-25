@@ -60,6 +60,11 @@ it creates and removes synthetic test accounts, without sending email.
   previous QR alongside unsaved or unpublished changes as though they match.
 - Keep named QR PNG export (`lib/downloadQrCard.ts`) and its quiet zone intact.
   Full-card PNG capture uses `html-to-image` through `lib/captureCard.ts`.
+- `/designs` lists every product through `list_design_assets`. Product tables stay
+  the source of truth for content, publication, revision and Trash; `design_assets`
+  only holds private library metadata (name, favourite, last opened). Library
+  downloads call each product's own endpoint so plan features and quotas apply.
+  A design's library name is private and never printed or published.
 - Group CSV importing remains a lightweight bundle flow. Organization workspaces,
   row editing/mapping and team provisioning belong to later phases.
 
