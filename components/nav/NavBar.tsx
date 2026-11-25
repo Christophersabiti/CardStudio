@@ -382,7 +382,7 @@ function BottomTabs({ pathname }: { pathname: string }) {
   const tabs = [
     { href: "/dashboard", label: "Home", icon: HomeIcon, match: (p: string) => p === "/dashboard" },
     { href: "/create", label: "Create", icon: PlusIcon, match: (p: string) => p === "/create" || ["/studio", "/qr-studio", "/stamp-maker", "/email-signature"].some((h) => isActive(p, h)) },
-    { href: "/dashboard/qr", label: "QR codes", icon: FolderIcon, match: (p: string) => isActive(p, "/dashboard/qr") },
+    { href: "/designs", label: "Designs", icon: FolderIcon, match: (p: string) => isActive(p, "/designs") || isActive(p, "/dashboard/qr") },
     { href: "/dashboard/account", label: "Account", icon: UserIcon, match: (p: string) => isActive(p, "/dashboard/account") || isActive(p, "/billing") },
   ];
   return (

@@ -67,7 +67,7 @@ export default async function Onboarding({
             <BillingActions trial />
           </section>
         )}
-        {u.onboardingComplete&&<Link href="/dashboard" className="cs-button cs-primary mr-4">Continue to My cards</Link>}
+        {u.onboardingComplete&&<Link href="/dashboard" className="cs-button cs-primary mr-4">Continue to your dashboard</Link>}
         <Link href="/pricing" className="underline">
           Compare all plans
         </Link>

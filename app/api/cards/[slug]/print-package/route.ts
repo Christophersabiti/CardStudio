@@ -1,17 +1,11 @@
 import { requireFeature } from "@/lib/features";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/session";
-import { activeBrand } from "@/lib/brand";
 import { checkOrigin, errorResponse, HttpError, jsonResponse, readJson } from "@/lib/http";
-import { ownedRecord } from "@/lib/records";
 import { rateLimit } from "@/lib/rate-limit";
-import { cardSchema } from "@/lib/validation";
-import type { CardData, CardRecord } from "@/lib/types";
-import { printAccess } from "@/lib/print-package/access";
-import { brandPrintImage, ownedPrintImage } from "@/lib/print-package/assets";
 import { PrintError } from "@/lib/print-package/policy";
-import { createPrintPackage, PrintPlanRequired } from "@/lib/print-package/service";
-import { renderPrintPackage } from "@/lib/print-package/render";
+import { PrintPlanRequired } from "@/lib/print-package/service";
+import { cardPrintZip } from "@/lib/print-package/card";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -25,17 +19,7 @@ export async function POST(req: Request, {params}: {params: Promise<{slug:string
     const {slug} = await params;
     const raw = await readJson(req,2048);
     const body = requestSchema.parse(raw);
-    const result = await createPrintPackage(user.id,slug,body.revision,body.preset,process.env.NEXT_PUBLIC_SITE_URL,{
-      ownedRecord: async (cardSlug,ownerId) => {
-        const record = await ownedRecord("cards",cardSlug,ownerId) as CardRecord | null;
-        return record ? {...record,data:cardSchema.parse(record.data) as CardData} : null;
-      },
-      allowed: async () => (await printAccess(user)).allowed,
-      render: async (snapshot,preset,ownerId) => {
-        const [photo,logo] = await Promise.all([ownedPrintImage(snapshot.data.photo,ownerId),snapshot.data.logo ? ownedPrintImage(snapshot.data.logo,ownerId) : brandPrintImage(activeBrand.logo)]);
-        return (await renderPrintPackage({...snapshot,brand:activeBrand,photo,logo,preset})).zip;
-      },
-    });
+    const result = await cardPrintZip(user,slug,body.revision,body.preset);
     return new Response(new Uint8Array(result.zip),{headers:{
       "Content-Type":"application/zip",
       "Content-Disposition":`attachment; filename="card-${slug}-r${body.revision}-${result.mode === "dynamic" ? "online" : "offline"}.zip"`,

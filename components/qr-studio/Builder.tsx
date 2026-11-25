@@ -145,8 +145,8 @@ export default function Builder({
             Bring your event, place or media into the moment.
           </p>
         </div>
-        <Link href="/dashboard/qr" className="cs-button">
-          My QR codes <ArrowUpRightIcon />
+        <Link href="/designs?kind=qr" className="cs-button">
+          My designs <ArrowUpRightIcon />
         </Link>
       </div>
       <nav className="qr-tabs" aria-label="Editor sections">

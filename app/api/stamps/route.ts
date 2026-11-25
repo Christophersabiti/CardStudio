@@ -5,6 +5,7 @@ import { errorResponse, HttpError, jsonResponse, checkOrigin, readJson } from "@
 import { rateLimit } from "@/lib/rate-limit";
 import { stampSaveSchema } from "@/lib/stamps";
 import { storeImage } from "@/lib/media";
+import { uniqueDesignName } from "@/lib/assets";
 
 export const runtime="nodejs";
 export async function GET(){
@@ -24,6 +25,8 @@ export async function POST(req:Request){
     for(const item of body.design.items){
       if(item.imageData?.startsWith("data:")) item.imageData=await storeImage(item.imageData,user.id);
     }
+    // Saved names stay distinct so designs started from the same template are easy to tell apart.
+    body.design.title=await uniqueDesignName(user.id,"stamp",body.design.title,body.id);
     if(body.id){
       const {data,error}=await c.from("stamp_designs").update({name:body.design.title,design:body.design}).eq("id",body.id).eq("owner_id",user.id).is("deleted_at",null).select("id,name,design,revision,updated_at").maybeSingle();
       if(error) throw error;

@@ -187,8 +187,8 @@ export default async function Admin({
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="admin-access">Superadmin · Unlimited access</span>
-            <Link href="/dashboard" className="cs-button">
-              My cards <ArrowUpRightIcon />
+            <Link href="/designs" className="cs-button">
+              My designs <ArrowUpRightIcon />
             </Link>
           </div>
         </header>
